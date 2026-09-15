@@ -35,13 +35,14 @@ export default function SidebarItem({
   onDragLeave?: React.DragEventHandler;
 }) {
   const currentPath = usePathname();
+  const isActive = path == currentPath;
   return (
     <li
       className={cn(
-        "relative flex justify-between rounded-lg text-sm transition-colors hover:bg-accent",
-        path == currentPath
-          ? "bg-accent/50 text-foreground"
-          : "text-muted-foreground",
+        "relative flex justify-between rounded-xl text-sm transition-[color,background-color,box-shadow] duration-150",
+        isActive
+          ? "bg-accent font-semibold text-accent-foreground shadow-[inset_3px_0_0_hsl(var(--foreground))] rtl:shadow-[inset_-3px_0_0_hsl(var(--foreground))]"
+          : "font-normal text-muted-foreground hover:bg-accent/60 hover:text-foreground",
         dropHighlight && "bg-accent ring-2 ring-primary",
         className,
       )}
@@ -55,12 +56,15 @@ export default function SidebarItem({
         {collapseButton}
         <Link
           href={path}
+          aria-current={isActive ? "page" : undefined}
           className={cn(
-            "flex flex-1 items-center gap-x-2 rounded-[inherit] px-3 py-2",
+            "flex min-h-11 flex-1 items-center gap-x-2.5 rounded-[inherit] px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
             linkClassName,
           )}
         >
-          {logo}
+          <span className="flex shrink-0" aria-hidden="true">
+            {logo}
+          </span>
           <span title={name} className="line-clamp-1 break-all">
             {name}
           </span>

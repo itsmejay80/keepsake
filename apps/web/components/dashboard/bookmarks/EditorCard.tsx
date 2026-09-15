@@ -190,23 +190,25 @@ export default function EditorCard({ className }: { className?: string }) {
       <form
         className={cn(
           className,
-          "relative flex flex-col gap-2 rounded-xl bg-card p-4",
+          "relative flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-[border-color,box-shadow] duration-150 focus-within:border-ring/60 focus-within:shadow-md focus-within:ring-2 focus-within:ring-ring/10",
           cardHeight,
         )}
         onSubmit={form.handleSubmit(onSubmit, onError)}
       >
-        <div className="flex justify-between">
-          <p className="text-sm">{t("editor.new_item")}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[13px] font-semibold lowercase text-foreground first-letter:uppercase">
+            {t("editor.new_item")}
+          </p>
           <Kbd>⌘ + E</Kbd>
         </div>
-        <Separator />
+        <Separator className="bg-border/60" />
         <FormItem className="flex-1">
           <FormControl>
             <Textarea
               ref={inputRef}
               disabled={isPending}
               className={cn(
-                "text-md h-full w-full border-none p-0 font-light focus-visible:ring-0",
+                "h-full w-full border-none bg-transparent p-0 text-[14px] font-normal leading-relaxed shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0",
                 { "resize-none": bookmarkLayout !== "list" },
               )}
               placeholder={t("editor.placeholder_v2")}
@@ -239,7 +241,8 @@ export default function EditorCard({ className }: { className?: string }) {
           disabled={!form.formState.dirtyFields.text}
           loading={isPending}
           type="submit"
-          variant="secondary"
+          variant={form.formState.dirtyFields.text ? "default" : "secondary"}
+          className="w-full rounded-xl"
         >
           {form.formState.dirtyFields.text
             ? demoMode

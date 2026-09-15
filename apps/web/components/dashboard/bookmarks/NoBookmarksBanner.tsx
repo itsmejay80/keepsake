@@ -6,14 +6,14 @@ import { Bookmark } from "lucide-react";
 export default function NoBookmarksBanner() {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 p-10 text-center shadow-sm dark:bg-slate-700/50 dark:shadow-md">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-        <Bookmark className="h-8 w-8 text-slate-400 dark:text-slate-300" />
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-10 text-center sm:p-16">
+      <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+        <Bookmark className="size-6" strokeWidth={1.5} aria-hidden="true" />
       </div>
-      <h3 className="mb-2 text-xl font-medium text-slate-700 dark:text-slate-100">
+      <h3 className="mb-2 text-xl font-semibold tracking-tight">
         {t("banners.no_bookmarks.title")}
       </h3>
-      <p className="mb-6 max-w-md text-slate-500 dark:text-slate-400">
+      <p className="max-w-md leading-6 text-muted-foreground">
         {t("banners.no_bookmarks.description")}
       </p>
     </div>

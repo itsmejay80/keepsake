@@ -33,7 +33,12 @@ function LinkTitle({ bookmark }: { bookmark: ZBookmarkTypeLink }) {
   const { onClickUrl, urlTarget } = useOnClickUrl(bookmark);
   const parsedUrl = new URL(bookmark.content.url);
   return (
-    <Link href={onClickUrl} target={urlTarget} rel="noreferrer">
+    <Link
+      href={onClickUrl}
+      target={urlTarget}
+      rel="noreferrer"
+      className="transition-colors hover:text-foreground"
+    >
       {getBookmarkTitle(bookmark) ?? parsedUrl.host}
     </Link>
   );

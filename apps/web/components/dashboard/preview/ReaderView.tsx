@@ -1,6 +1,7 @@
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
+import { getReaderViewWhiteSpace } from "@/lib/readerViewWhitespace";
 import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 
@@ -23,12 +24,14 @@ export default function ReaderView({
   style,
   readOnly,
   progressBarStyle,
+  sourceUrl,
 }: {
   bookmarkId: string;
   className?: string;
   style?: React.CSSProperties;
   readOnly: boolean;
   progressBarStyle?: React.CSSProperties;
+  sourceUrl?: string;
 }) {
   const { t } = useTranslation();
   const api = useTRPC();
@@ -151,7 +154,10 @@ export default function ReaderView({
         )}
         <BookmarkHTMLHighlighter
           className={className}
-          style={style}
+          style={{
+            ...style,
+            whiteSpace: getReaderViewWhiteSpace(sourceUrl) ?? style?.whiteSpace,
+          }}
           htmlContent={cachedContent || ""}
           highlights={highlights?.highlights ?? []}
           readOnly={readOnly}

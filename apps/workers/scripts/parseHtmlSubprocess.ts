@@ -33,6 +33,11 @@ import {
   ReaderViewAssessment,
   unavailableReaderViewAssessment,
 } from "../workers/utils/readerViewAssessment";
+import { fetchXThreadReaderHtml } from "../workers/utils/xThreadEmbed";
+import {
+  buildXPostReaderDocument,
+  getXStatusId,
+} from "../workers/utils/xReaderView";
 
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
@@ -130,6 +135,39 @@ function normalizeLazyLoadImages(document: Document): void {
   }
 }
 
+function sanitizeReadableHtml(
+  html: string,
+  sourceHtml: string,
+  url: string,
+): {
+  readableContent: { content: string };
+  readerViewAssessment: ReaderViewAssessment;
+} {
+  const virtualConsole = new VirtualConsole();
+  const purifyWindow = new JSDOM("").window;
+  try {
+    const purify = DOMPurify(purifyWindow);
+    const purifiedHTML = purify.sanitize(html);
+    const sourceDom = new JSDOM(sourceHtml, { url, virtualConsole });
+    const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
+    try {
+      return {
+        readableContent: { content: purifiedHTML },
+        readerViewAssessment: assessReaderView(
+          sourceDom.window.document,
+          extractedDom.window.document,
+          url,
+        ),
+      };
+    } finally {
+      sourceDom.window.close();
+      extractedDom.window.close();
+    }
+  } finally {
+    purifyWindow.close();
+  }
+}
+
 function extractReadableContent(
   htmlContent: string,
   url: string,
@@ -141,8 +179,12 @@ function extractReadableContent(
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
   try {
     normalizeLazyLoadImages(dom.window.document);
-    const documentClone = dom.window.document.cloneNode(true) as Document;
-    const readableContent = new Readability(documentClone).parse();
+    const xReaderDocument = buildXPostReaderDocument(dom.window.document, url);
+    const readableContent = xReaderDocument
+      ? { content: xReaderDocument.body.innerHTML }
+      : new Readability(
+          dom.window.document.cloneNode(true) as Document,
+        ).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
       return {
         readableContent: null,
@@ -202,7 +244,19 @@ async function main() {
   // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = null;
   let readerViewAssessment: ReaderViewAssessment | null = null;
-  if (!metadataOnly && meta.readableContentHtml) {
+  if (!metadataOnly && getXStatusId(url)) {
+    const xThreadHtml = await fetchXThreadReaderHtml(url);
+    if (xThreadHtml) {
+      logger.info(
+        `[Crawler][${jobId}] Extracted an X thread from the conversation API.`,
+      );
+      const extracted = sanitizeReadableHtml(xThreadHtml, htmlContent, url);
+      readableContent = extracted.readableContent;
+      readerViewAssessment = extracted.readerViewAssessment;
+    }
+  }
+
+  if (!metadataOnly && !readableContent && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
     const purifyWindow = new JSDOM("").window;

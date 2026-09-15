@@ -247,7 +247,6 @@ const SearchInput = React.forwardRef<
                   semanticSearchEnabled ? "pr-20 sm:pr-36" : "pr-10",
                   canSaveSearch &&
                     (semanticSearchEnabled ? "pr-32 sm:pr-48" : "pr-24"),
-                  className,
                 )}
                 {...props}
               />

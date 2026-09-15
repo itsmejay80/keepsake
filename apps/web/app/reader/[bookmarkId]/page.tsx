@@ -135,6 +135,11 @@ export default function ReaderViewPage() {
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}
+                      sourceUrl={
+                        bookmark.content.type === BookmarkTypes.LINK
+                          ? bookmark.content.url
+                          : undefined
+                      }
                       progressBarStyle={{ position: "fixed", top: "3.5rem" }}
                     />
                   </div>

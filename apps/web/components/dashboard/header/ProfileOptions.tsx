@@ -78,8 +78,11 @@ export default function SidebarProfileOptions() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
+          className="aspect-square size-10 rounded-full border border-border bg-card p-0 text-foreground shadow-sm hover:border-ring/50 hover:bg-card"
           variant="ghost"
+          aria-label={t("options.profile_menu", {
+            defaultValue: "Open profile menu",
+          })}
         >
           <UserAvatar
             image={avatarUrl}
@@ -90,7 +93,7 @@ export default function SidebarProfileOptions() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-2 min-w-64 p-2">
         <div className="flex gap-2">
-          <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white">
+          <div className="flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border border-border bg-card p-0 text-foreground">
             <UserAvatar
               image={avatarUrl}
               name={session.user.name}

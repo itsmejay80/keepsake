@@ -43,6 +43,7 @@ export const myWebsiteRenderer: ContentRenderer = {
   canRender: canRenderMyWebsite,
   component: MyWebsiteRendererComponent,
   priority: 10, // Higher priority = appears first in dropdown
+  preferAsDefault: true, // false, or a function, to keep the renderer in the dropdown without opening it by default
 };
 ```
 

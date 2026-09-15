@@ -16,18 +16,21 @@ export default function BookmarkActionBar({
   favouritedClassName?: string;
 }) {
   return (
-    <div className="flex text-gray-500">
+    <div className="flex shrink-0 items-center text-muted-foreground">
       {bookmark.favourited && (
         <FavouritedActionIcon
-          className={cn("m-1 size-8 rounded p-1", favouritedClassName)}
+          className={cn("m-1 size-8 rounded-lg p-1", favouritedClassName)}
           favourited
         />
       )}
       <Link
         href={`/dashboard/preview/${bookmark.id}`}
-        className={cn(buttonVariants({ variant: "ghost" }), "px-2")}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon" }),
+          "size-8 rounded-lg",
+        )}
       >
-        <Maximize2 size={16} />
+        <Maximize2 size={15} />
       </Link>
       <BookmarkOptions bookmark={bookmark} />
     </div>

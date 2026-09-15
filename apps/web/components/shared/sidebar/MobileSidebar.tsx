@@ -12,12 +12,16 @@ export default async function MobileSidebar({
   // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
   return (
-    <aside className="w-full overflow-x-auto">
-      <ul className="flex justify-between space-x-2 border-b-black px-5 py-2 pt-5">
+    <aside
+      className="w-full overflow-x-auto bg-background"
+      aria-label={t("common.navigation", { defaultValue: "Main navigation" })}
+    >
+      <ul className="flex min-w-max gap-1 px-3 py-2">
         {items(t).map((item) => (
           <MobileSidebarItem
             key={item.name}
             logo={item.icon}
+            name={item.name}
             path={item.path}
           />
         ))}

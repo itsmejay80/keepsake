@@ -14,7 +14,7 @@ import { toast } from "@/components/ui/sonner";
 import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { ClipboardList, MoreHorizontal, Plus, Star, Users } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
@@ -214,22 +214,21 @@ export default function AllLists({
 
   return (
     <ul className="sidebar-scrollbar max-h-full gap-y-2 overflow-auto text-sm">
-      <li className="flex justify-between pb-3">
-        <p className="pl-2 text-xs uppercase tracking-wider text-muted-foreground">
-          Lists
-        </p>
+      <li className="flex min-h-11 items-center justify-between px-2 pb-1">
+        <p className="text-xs font-semibold text-muted-foreground">Lists</p>
         <EditListModal>
-          <Link href="#">
-            <Plus
-              className="mr-2 size-4 text-muted-foreground"
-              strokeWidth={1.5}
-            />
+          <Link
+            href="#"
+            aria-label={t("lists.create_list", { defaultValue: "Create list" })}
+            className="flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Plus className="size-4" strokeWidth={1.5} />
           </Link>
         </EditListModal>
       </li>
       <SidebarItem
         collapseButton={<span className="size-4" />}
-        logo={<span className="text-lg">📋</span>}
+        logo={<ClipboardList className="size-[18px]" strokeWidth={1.5} />}
         name={t("lists.all_lists")}
         path={`/dashboard/lists`}
         linkClassName="py-0.5 px-1"
@@ -237,7 +236,7 @@ export default function AllLists({
       />
       <SidebarItem
         collapseButton={<span className="size-4" />}
-        logo={<span className="text-lg">⭐️</span>}
+        logo={<Star className="size-[18px]" strokeWidth={1.5} />}
         name={t("lists.favourites")}
         path={`/dashboard/favourites`}
         linkClassName="py-0.5 px-1"
@@ -270,7 +269,7 @@ export default function AllLists({
                 open={sharedListsOpen}
               />
             }
-            logo={<span className="text-lg">👥</span>}
+            logo={<Users className="size-[18px]" strokeWidth={1.5} />}
             name={t("lists.shared_lists")}
             path="#"
             linkClassName="py-0.5 px-1"

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "@karakeep/tailwind-config/globals.css";
@@ -14,8 +14,9 @@ import { Toaster } from "sonner";
 
 import { clientConfig } from "@karakeep/shared/config";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
+  variable: "--font-sans",
   fallback: ["sans-serif"],
 });
 
@@ -53,8 +54,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default async function RootLayout({
@@ -71,7 +70,7 @@ export default async function RootLayout({
       dir={isRTL ? "rtl" : "ltr"}
       suppressHydrationWarning
     >
-      <body className={inter.className}>
+      <body className={`${manrope.className} ${manrope.variable}`}>
         <NuqsAdapter>
           <Providers
             session={session}

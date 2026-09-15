@@ -18,9 +18,12 @@ export default async function Sidebar({
   const { t } = await useTranslation();
 
   return (
-    <aside className="flex h-[calc(100vh-64px)] w-60 flex-col gap-5 border-r p-4 xl:w-72">
+    <aside
+      className="flex h-[calc(100vh-60px)] w-60 flex-col gap-4 border-r border-border/70 bg-background p-3 xl:w-72"
+      aria-label={t("common.navigation", { defaultValue: "Main navigation" })}
+    >
       <div>
-        <ul className="space-y-2 text-sm">
+        <ul className="space-y-1 text-sm">
           {items(t).map((item) => (
             <SidebarItem
               key={item.name}

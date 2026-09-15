@@ -198,6 +198,8 @@ const ScrollProgressTracker = forwardRef<
     <div ref={containerRef}>
       {showProgressBar && (
         <div
+          aria-hidden="true"
+          className="transition-opacity duration-150 ease-out motion-reduce:transition-none"
           style={{
             position: "sticky",
             top: 0,
@@ -206,17 +208,19 @@ const ScrollProgressTracker = forwardRef<
             height: 3,
             zIndex: 50,
             backgroundColor: "transparent",
+            pointerEvents: "none",
             opacity: progressBarVisible ? 1 : 0,
-            transition: "opacity 300ms ease-out",
             ...progressBarStyle,
           }}
         >
           <div
+            className="transition-transform duration-150 ease-out motion-reduce:transition-none"
             style={{
               height: "100%",
-              width: `${scrollPercent}%`,
-              backgroundColor: "rgb(249, 115, 22)",
-              transition: "width 150ms ease-out",
+              width: "100%",
+              backgroundColor: "hsl(var(--primary))",
+              transform: `scaleX(${scrollPercent / 100})`,
+              transformOrigin: "left center",
             }}
           />
         </div>

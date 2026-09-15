@@ -39,7 +39,7 @@ function StyledBookmarkCard({
   return (
     <Slot
       className={cn(
-        "mb-4 border border-border bg-card hover:shadow-lg hover:transition-shadow",
+        "mb-5 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.06),0_8px_24px_-18px_hsl(var(--foreground)/0.28)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_2px_4px_hsl(var(--foreground)/0.06),0_18px_38px_-20px_hsl(var(--foreground)/0.34)] motion-reduce:transform-none motion-reduce:transition-none",
         className,
       )}
       {...props}

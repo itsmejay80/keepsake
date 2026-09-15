@@ -14,9 +14,17 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
 export function useToggleTheme() {
   const { theme, setTheme } = useTheme();
+  const changeTheme = (nextTheme: "light" | "dark") => {
+    const style = document.createElement("style");
+    style.textContent = "*,*::before,*::after{transition:none!important}";
+    document.head.appendChild(style);
+    setTheme(nextTheme);
+    void window.getComputedStyle(document.body).opacity;
+    window.requestAnimationFrame(() => style.remove());
+  };
   if (theme == "dark") {
-    return () => setTheme("light");
+    return () => changeTheme("light");
   } else {
-    return () => setTheme("dark");
+    return () => changeTheme("dark");
   }
 }
