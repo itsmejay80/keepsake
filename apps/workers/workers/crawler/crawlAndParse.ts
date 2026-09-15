@@ -105,8 +105,8 @@ export async function handleAsAssetBookmark(
         );
       }
       const fileName = path.basename(new URL(url).pathname);
-      await db.transaction(async (trx) => {
-        await updateAsset(
+      db.transaction((trx) => {
+        updateAsset(
           undefined,
           {
             id: downloaded.assetId,
@@ -119,20 +119,24 @@ export async function handleAsAssetBookmark(
           },
           trx,
         );
-        await trx.insert(bookmarkAssets).values({
-          id: bookmarkId,
-          assetType,
-          assetId: downloaded.assetId,
-          content: null,
-          fileName,
-          sourceUrl: url,
-        });
+        trx
+          .insert(bookmarkAssets)
+          .values({
+            id: bookmarkId,
+            assetType,
+            assetId: downloaded.assetId,
+            content: null,
+            fileName,
+            sourceUrl: url,
+          })
+          .run();
         // Switch the type of the bookmark from LINK to ASSET
-        await trx
+        trx
           .update(bookmarks)
           .set({ type: BookmarkTypes.ASSET })
-          .where(eq(bookmarks.id, bookmarkId));
-        await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
+          .where(eq(bookmarks.id, bookmarkId))
+          .run();
+        trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId)).run();
       });
       await AssetPreprocessingQueue.enqueue(
         {
@@ -398,8 +402,8 @@ export async function crawlAndParseUrl(
           ? (readableContent?.content ?? null)
           : null;
       readableContent = null;
-      await db.transaction(async (txn) => {
-        await txn
+      db.transaction((txn) => {
+        txn
           .update(bookmarkLinks)
           .set({
             crawledAt: new Date(),
@@ -414,10 +418,11 @@ export async function crawlAndParseUrl(
             readerViewClassifierVersion:
               readerViewAssessment?.classifierVersion ?? null,
           })
-          .where(eq(bookmarkLinks.id, bookmarkId));
+          .where(eq(bookmarkLinks.id, bookmarkId))
+          .run();
 
         if (screenshotAssetInfo) {
-          await updateAsset(
+          updateAsset(
             oldAssets.screenshotAssetId,
             {
               id: screenshotAssetInfo.assetId,
@@ -435,7 +440,7 @@ export async function crawlAndParseUrl(
           );
         }
         if (pdfAssetInfo) {
-          await updateAsset(
+          updateAsset(
             oldAssets.pdfAssetId,
             {
               id: pdfAssetInfo.assetId,
@@ -453,13 +458,13 @@ export async function crawlAndParseUrl(
           );
         }
         if (imageAssetInfo) {
-          await updateAsset(oldAssets.imageAssetId, imageAssetInfo, txn);
+          updateAsset(oldAssets.imageAssetId, imageAssetInfo, txn);
           assetDeletionTasks.push(
             silentDeleteAsset(userId, oldAssets.imageAssetId),
           );
         }
         if (htmlContentAssetInfo.result === "stored") {
-          await updateAsset(
+          updateAsset(
             oldAssets.contentAssetId,
             {
               id: htmlContentAssetInfo.assetId,
@@ -477,9 +482,10 @@ export async function crawlAndParseUrl(
           );
         } else if (oldAssets.contentAssetId) {
           // Unlink the old content asset
-          await txn
+          txn
             .delete(assets)
-            .where(eq(assets.id, oldAssets.contentAssetId));
+            .where(eq(assets.id, oldAssets.contentAssetId))
+            .run();
           assetDeletionTasks.push(
             silentDeleteAsset(userId, oldAssets.contentAssetId),
           );
@@ -510,8 +516,8 @@ export async function crawlAndParseUrl(
               contentType,
             } = archiveResult;
 
-            await db.transaction(async (txn) => {
-              await updateAsset(
+            db.transaction((txn) => {
+              updateAsset(
                 oldAssets.fullPageArchiveAssetId,
                 {
                   id: fullPageArchiveAssetId,

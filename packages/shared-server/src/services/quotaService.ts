@@ -20,6 +20,34 @@ export class StorageQuotaError extends Error {
 // TODO: Change the API of this class to either return a boolean
 // or throw an exception on lack of quota because now, it's inconsistent.
 export class QuotaService {
+  static canCreateBookmarkInTransaction(
+    db: KarakeepDBTransaction,
+    userId: string,
+  ) {
+    const user = db
+      .select({ bookmarkQuota: users.bookmarkQuota })
+      .from(users)
+      .where(eq(users.id, userId))
+      .get();
+
+    if (user?.bookmarkQuota !== null && user?.bookmarkQuota !== undefined) {
+      const currentBookmarkCount = db
+        .select({ count: count() })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, userId))
+        .get();
+
+      if ((currentBookmarkCount?.count ?? 0) >= user.bookmarkQuota) {
+        return {
+          result: false,
+          error: `Bookmark quota exceeded. You can only have ${user.bookmarkQuota} bookmarks.`,
+        } as const;
+      }
+    }
+
+    return { result: true } as const;
+  }
+
   // TODO: Use quota approval tokens for bookmark creation when
   // bookmark creation logic is in the model.
   static async canCreateBookmark(

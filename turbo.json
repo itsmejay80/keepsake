@@ -3,6 +3,16 @@
   "globalDependencies": [
     "**/.env"
   ],
+  "globalEnv": [
+    "BROWSER_WEBSOCKET_URL",
+    "BROWSER_WEB_URL",
+    "DATA_DIR",
+    "MEILI_ADDR",
+    "NEXTAUTH_SECRET",
+    "NEXTAUTH_URL",
+    "NO_COLOR",
+    "PORT"
+  ],
   "tasks": {
     "topo": {
       "dependsOn": [
