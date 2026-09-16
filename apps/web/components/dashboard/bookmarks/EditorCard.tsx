@@ -4,7 +4,6 @@ import { ActionButton } from "@/components/ui/action-button";
 import { Form, FormControl, FormItem } from "@/components/ui/form";
 import { Kbd } from "@/components/ui/kbd";
 import MultipleChoiceDialog from "@/components/ui/multiple-choice-dialog";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
 import BookmarkSavedToast from "@/components/utils/BookmarkSavedToast";
@@ -14,7 +13,7 @@ import {
   useBookmarkLayout,
   useBookmarkLayoutSwitch,
 } from "@/lib/userLocalSettings/bookmarksLayout";
-import { cn, getOS } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -183,7 +182,7 @@ export default function EditorCard({ className }: { className?: string }) {
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
   };
 
-  const OS = getOS();
+  const canSave = !!form.formState.dirtyFields.text;
 
   return (
     <Form {...form}>
@@ -201,8 +200,7 @@ export default function EditorCard({ className }: { className?: string }) {
           </p>
           <Kbd>⌘ + E</Kbd>
         </div>
-        <Separator className="bg-border/60" />
-        <FormItem className="flex-1">
+        <FormItem className="min-h-0 flex-1">
           <FormControl>
             <Textarea
               ref={inputRef}
@@ -237,19 +235,24 @@ export default function EditorCard({ className }: { className?: string }) {
             />
           </FormControl>
         </FormItem>
-        <ActionButton
-          disabled={!form.formState.dirtyFields.text}
-          loading={isPending}
-          type="submit"
-          variant={form.formState.dirtyFields.text ? "default" : "secondary"}
-          className="w-full rounded-xl"
-        >
-          {form.formState.dirtyFields.text
-            ? demoMode
+        <div className="flex shrink-0 items-center justify-end gap-2">
+          <Kbd>⌘ + Enter</Kbd>
+          <ActionButton
+            disabled={!canSave}
+            loading={isPending}
+            type="submit"
+            size="sm"
+            variant={canSave ? "default" : "ghost"}
+            className={cn(
+              "h-8 px-3 text-[13px] font-medium",
+              !canSave && "text-muted-foreground",
+            )}
+          >
+            {canSave && demoMode
               ? t("editor.disabled_submissions")
-              : `${t("actions.save")} (${OS === "macos" ? "⌘" : "Ctrl"} + Enter)`
-            : t("actions.save")}
-        </ActionButton>
+              : t("actions.save")}
+          </ActionButton>
+        </div>
 
         {multiUrlImportState && (
           <MultipleChoiceDialog
