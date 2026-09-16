@@ -19,6 +19,21 @@ import { Button } from "./ui/button";
 import { Popover, PopoverContent } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
 
+function clearDomSelection() {
+  window.getSelection()?.removeAllRanges();
+}
+
+function isSelectionInside(container: Node | null) {
+  if (!container) {
+    return false;
+  }
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || !selection.anchorNode) {
+    return false;
+  }
+  return container.contains(selection.anchorNode);
+}
+
 interface HighlightFormProps {
   position: { x: number; y: number } | null;
   selectedHighlight: Highlight | null;
@@ -54,6 +69,7 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
   return (
     <Popover
       open={position !== null}
+      modal={isMobile}
       onOpenChange={(val) => {
         if (!val) {
           onClose();
@@ -69,7 +85,8 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
       />
       <PopoverContent
         side={isMobile ? "bottom" : "top"}
-        className="w-80 space-y-3 p-3"
+        collisionPadding={16}
+        className="z-[100] w-80 space-y-3 p-3"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div>
@@ -178,11 +195,15 @@ const BookmarkHTMLHighlighter = forwardRef<
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(
     null,
   );
-  const isMobile = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(pointer: coarse)").matches,
-  )[0];
+  const isMobile = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      return true;
+    }
+    return /iPhone|iPod|iPad/i.test(navigator.userAgent);
+  })[0];
 
   // Apply existing highlights when component mounts or highlights change
   useEffect(() => {
@@ -202,15 +223,21 @@ const BookmarkHTMLHighlighter = forwardRef<
       }
     });
 
-    // Apply all highlights
-    highlights.forEach((highlight) => {
+    // Apply saved highlights, plus the in-progress one so phones can show it
+    // without restoring the native text selection (which opens Copy/Translate).
+    const toApply = pendingHighlight
+      ? [...highlights, pendingHighlight]
+      : highlights;
+    toApply.forEach((highlight) => {
       applyHighlightByOffset(highlight);
     });
   });
 
-  // Re-apply the selection when the pending range changes
+  // Re-apply the selection when the pending range changes. Skip this on
+  // touch devices: restoring the range re-opens the OS selection menu and
+  // covers the highlight form.
   useEffect(() => {
-    if (!pendingHighlight) {
+    if (!pendingHighlight || isMobile) {
       return;
     }
     if (!contentRef.current) {
@@ -228,7 +255,35 @@ const BookmarkHTMLHighlighter = forwardRef<
     );
     window.getSelection()?.removeAllRanges();
     window.getSelection()?.addRange(newRange);
-  }, [pendingHighlight, contentRef]);
+  }, [pendingHighlight, isMobile]);
+
+  // While the highlight form is open on a phone, keep dismissing article
+  // selections so iOS/Android cannot resurrect Copy / Translate / Find.
+  useEffect(() => {
+    if (!isMobile || menuPosition === null || !contentRef.current) {
+      return;
+    }
+
+    const article = contentRef.current;
+    article.style.setProperty("-webkit-user-select", "none");
+    article.style.setProperty("user-select", "none");
+
+    const dismissArticleSelection = () => {
+      if (isSelectionInside(article)) {
+        clearDomSelection();
+      }
+    };
+
+    dismissArticleSelection();
+    const timeout = window.setTimeout(dismissArticleSelection, 100);
+    document.addEventListener("selectionchange", dismissArticleSelection);
+    return () => {
+      article.style.removeProperty("-webkit-user-select");
+      article.style.removeProperty("user-select");
+      window.clearTimeout(timeout);
+      document.removeEventListener("selectionchange", dismissArticleSelection);
+    };
+  }, [isMobile, menuPosition]);
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (readOnly) {
@@ -275,6 +330,10 @@ const BookmarkHTMLHighlighter = forwardRef<
 
     // Store the highlight for later use
     setPendingHighlight(createHighlightFromRange(range, "yellow"));
+
+    if (isMobile) {
+      clearDomSelection();
+    }
   };
 
   const handleSave = (color: ZHighlightColor, note: string | null) => {
@@ -410,8 +469,13 @@ const BookmarkHTMLHighlighter = forwardRef<
         ref={contentRef}
         dangerouslySetInnerHTML={{ __html: htmlContent }}
         onPointerUp={handlePointerUp}
+        onContextMenu={(e) => {
+          if (isMobile && !readOnly) {
+            e.preventDefault();
+          }
+        }}
         className={cn(
-          "prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto",
+          "prose prose-neutral max-w-none break-words [-webkit-touch-callout:none] dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto",
           className,
         )}
         style={style}
