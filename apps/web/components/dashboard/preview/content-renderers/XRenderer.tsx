@@ -7,7 +7,11 @@ import { MessageSquare } from "lucide-react";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-import { getXStatusPermalink, loadXWidgets } from "@/lib/xEmbed";
+import {
+  getXEmbedWidth,
+  getXStatusPermalink,
+  loadXWidgets,
+} from "@/lib/xEmbed";
 import { extractTweetId, extractXThreadStatusIds } from "@/lib/xThread";
 import { xBookmarkHasAttachedVideo } from "@/lib/xVideo";
 
@@ -32,62 +36,92 @@ function XTweetEmbeds({ statusIds }: { statusIds: string[] }) {
     }
 
     let cancelled = false;
+    let lastWidth = 0;
+    let renderGeneration = 0;
 
-    void loadXWidgets()
-      .then(async (twttr) => {
-        if (cancelled) {
-          return;
-        }
+    const render = (containerWidth: number) => {
+      if (containerWidth <= 0) {
+        return;
+      }
+      const width = getXEmbedWidth(containerWidth);
+      if (width === lastWidth && container.childElementCount > 0) {
+        return;
+      }
+      lastWidth = width;
+      const generation = ++renderGeneration;
 
-        container.replaceChildren();
-
-        if (twttr.widgets.createTweet) {
-          for (const id of statusIds) {
-            if (cancelled) {
-              return;
-            }
-            const mount = document.createElement("div");
-            mount.className = "w-full";
-            container.append(mount);
-            await twttr.widgets.createTweet(id, mount, {
-              align: "center",
-              dnt: true,
-              width: 550,
-            });
+      void loadXWidgets()
+        .then(async (twttr) => {
+          if (cancelled || generation !== renderGeneration) {
+            return;
           }
-          return;
-        }
 
-        for (const id of statusIds) {
-          const blockquote = document.createElement("blockquote");
-          blockquote.className = "twitter-tweet";
-          blockquote.setAttribute("data-media-max-width", "560");
-          blockquote.setAttribute("data-width", "550");
-          const link = document.createElement("a");
-          link.href = getXStatusPermalink(id);
-          link.textContent = "View post on X";
-          blockquote.append(link);
-          container.append(blockquote);
-        }
-        twttr.widgets.load(container);
-      })
-      .catch(() => {
-        if (cancelled || !containerRef.current) {
-          return;
-        }
-        containerRef.current.replaceChildren();
-        for (const id of statusIds) {
-          const link = document.createElement("a");
-          link.href = getXStatusPermalink(id);
-          link.target = "_blank";
-          link.rel = "noreferrer";
-          link.textContent = "View post on X";
-          containerRef.current.append(link);
-        }
-      });
+          container.replaceChildren();
+
+          if (twttr.widgets.createTweet) {
+            for (const id of statusIds) {
+              if (cancelled || generation !== renderGeneration) {
+                return;
+              }
+              const mount = document.createElement("div");
+              mount.className = "w-full min-w-0";
+              container.append(mount);
+              await twttr.widgets.createTweet(id, mount, {
+                align: "center",
+                dnt: true,
+                width,
+              });
+            }
+            return;
+          }
+
+          for (const id of statusIds) {
+            const blockquote = document.createElement("blockquote");
+            blockquote.className = "twitter-tweet";
+            blockquote.setAttribute("data-media-max-width", String(width));
+            blockquote.setAttribute("data-width", String(width));
+            const link = document.createElement("a");
+            link.href = getXStatusPermalink(id);
+            link.textContent = "View post on X";
+            blockquote.append(link);
+            container.append(blockquote);
+          }
+          twttr.widgets.load(container);
+        })
+        .catch(() => {
+          if (
+            cancelled ||
+            generation !== renderGeneration ||
+            !containerRef.current
+          ) {
+            return;
+          }
+          containerRef.current.replaceChildren();
+          for (const id of statusIds) {
+            const link = document.createElement("a");
+            link.href = getXStatusPermalink(id);
+            link.target = "_blank";
+            link.rel = "noreferrer";
+            link.className = "text-sm text-primary underline";
+            link.textContent = "View post on X";
+            containerRef.current.append(link);
+          }
+        });
+    };
+
+    render(container.clientWidth);
+
+    const observer = new ResizeObserver((entries) => {
+      const nextWidth = entries[0]?.contentRect.width;
+      if (nextWidth) {
+        render(nextWidth);
+      }
+    });
+    observer.observe(container);
 
     return () => {
       cancelled = true;
+      observer.disconnect();
       container.replaceChildren();
     };
   }, [statusKey]);
@@ -95,7 +129,7 @@ function XTweetEmbeds({ statusIds }: { statusIds: string[] }) {
   return (
     <div
       ref={containerRef}
-      className="flex w-full flex-col items-center gap-4"
+      className="flex w-full min-w-0 flex-col items-center gap-4 [&_iframe]:max-w-full"
     />
   );
 }
@@ -129,11 +163,9 @@ function XRendererComponent({ bookmark }: { bookmark: ZBookmark }) {
   const threadIds = extractXThreadStatusIds(htmlContent, tweetId);
 
   return (
-    <div className="relative h-full w-full overflow-auto">
-      <div className="flex justify-center px-6 py-8">
-        <div className="w-full max-w-[550px] origin-top [zoom:1.35] motion-reduce:[zoom:1]">
-          <XTweetEmbeds statusIds={threadIds} />
-        </div>
+    <div className="relative h-full w-full min-w-0 overflow-auto">
+      <div className="mx-auto w-full min-w-0 max-w-[550px] px-1 py-4 sm:px-2 sm:py-6 lg:origin-top lg:px-0 lg:py-8 lg:[zoom:1.25] motion-reduce:lg:[zoom:1]">
+        <XTweetEmbeds statusIds={threadIds} />
       </div>
     </div>
   );

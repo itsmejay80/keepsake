@@ -1,5 +1,7 @@
 const X_WIDGETS_SCRIPT_ID = "x-widgets-js";
 export const X_WIDGETS_SCRIPT_SRC = "https://platform.x.com/widgets.js";
+export const X_EMBED_MIN_WIDTH = 220;
+export const X_EMBED_MAX_WIDTH = 550;
 
 type XWidgets = {
   ready?: (callback: () => void) => void;
@@ -19,6 +21,17 @@ function getXWidgets(): XWidgets | undefined {
 
 export function getXStatusPermalink(statusId: string): string {
   return `https://x.com/i/status/${statusId}`;
+}
+
+export function getXEmbedWidth(containerWidth: number): number {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
+    return X_EMBED_MIN_WIDTH;
+  }
+
+  return Math.min(
+    X_EMBED_MAX_WIDTH,
+    Math.max(X_EMBED_MIN_WIDTH, Math.floor(containerWidth)),
+  );
 }
 
 export function loadXWidgets(): Promise<XWidgets> {
