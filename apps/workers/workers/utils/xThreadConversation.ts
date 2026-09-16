@@ -1,4 +1,4 @@
-import type { XThreadPostContent } from "./xReaderView";
+import type { XArticleContent, XThreadPostContent } from "./xReaderView";
 
 interface FxAuthor {
   screen_name?: string;
@@ -28,6 +28,20 @@ export interface FxTweet {
   quote?: FxTweet | null;
   replying_to?: FxReplyTo | string | null;
   replying_to_status?: string | null;
+  article?: {
+    title?: string;
+    content?: {
+      blocks?: Array<{
+        type?: string;
+        text?: string;
+        inlineStyleRanges?: Array<{
+          offset?: number;
+          length?: number;
+          style?: string;
+        }>;
+      }>;
+    };
+  } | null;
 }
 
 export interface FxConversation {
@@ -149,13 +163,45 @@ function toIsoDate(tweet: FxTweet): string | null {
   return null;
 }
 
+function articleContent(tweet: FxTweet): XArticleContent | null {
+  const title = tweet.article?.title?.trim();
+  const blocks = tweet.article?.content?.blocks;
+  if (!title || !blocks) {
+    return null;
+  }
+
+  return {
+    title,
+    blocks: blocks
+      .filter((block) => typeof block.text === "string" && block.text.trim())
+      .map((block) => ({
+        type: block.type ?? "unstyled",
+        text: block.text!,
+        inlineStyleRanges: (block.inlineStyleRanges ?? []).flatMap((range) =>
+          typeof range.offset === "number" &&
+          typeof range.length === "number" &&
+          typeof range.style === "string"
+            ? [
+                {
+                  offset: range.offset,
+                  length: range.length,
+                  style: range.style,
+                },
+              ]
+            : [],
+        ),
+      })),
+  };
+}
+
 export function fxTweetToPost(tweet: FxTweet): XThreadPostContent | null {
   if (!tweet.id) {
     return null;
   }
   const text = tweet.text?.trim() ?? "";
   const imageUrls = mediaUrls(tweet);
-  if (!text && imageUrls.length === 0 && !tweet.quote) {
+  const article = articleContent(tweet);
+  if (!text && imageUrls.length === 0 && !tweet.quote && !article) {
     return null;
   }
 
@@ -176,5 +222,6 @@ export function fxTweetToPost(tweet: FxTweet): XThreadPostContent | null {
         }
       : null,
     cardUrl: null,
+    article,
   };
 }

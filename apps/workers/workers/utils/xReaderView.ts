@@ -22,6 +22,22 @@ export interface XThreadPostContent {
     statusId: string | null;
   } | null;
   cardUrl: string | null;
+  article: XArticleContent | null;
+}
+
+export interface XArticleContent {
+  title: string;
+  blocks: XArticleBlock[];
+}
+
+export interface XArticleBlock {
+  type: string;
+  text: string;
+  inlineStyleRanges: Array<{
+    offset: number;
+    length: number;
+    style: string;
+  }>;
 }
 
 interface XTweetRecord {
@@ -39,6 +55,7 @@ interface XTweetRecord {
     statusId: string | null;
   } | null;
   cardUrl: string | null;
+  article: XArticleContent | null;
 }
 
 function getXHostname(url: string): string | null {
@@ -220,6 +237,7 @@ function extractTweetRecord(article: Element): XTweetRecord | null {
     imageUrls,
     quote,
     cardUrl: getArticleCardUrl(article),
+    article: null,
   };
 }
 
@@ -352,6 +370,86 @@ function appendTextContent(document: Document, parent: Element, html: string) {
   }
 }
 
+function appendArticleText(
+  document: Document,
+  parent: Element,
+  text: string,
+  ranges: XArticleBlock["inlineStyleRanges"],
+) {
+  const boundaries = new Set([0, text.length]);
+  const validRanges = ranges.filter(
+    (range) =>
+      range.length > 0 && range.offset >= 0 && range.offset < text.length,
+  );
+  for (const range of validRanges) {
+    boundaries.add(range.offset);
+    boundaries.add(Math.min(range.offset + range.length, text.length));
+  }
+
+  const points = [...boundaries].sort((left, right) => left - right);
+  for (let index = 0; index < points.length - 1; index++) {
+    const start = points[index]!;
+    const end = points[index + 1]!;
+    let node: Element = parent;
+    for (const range of validRanges) {
+      if (range.offset <= start && range.offset + range.length >= end) {
+        const tag =
+          range.style.toLowerCase() === "bold"
+            ? "strong"
+            : range.style.toLowerCase() === "italic"
+              ? "em"
+              : range.style.toLowerCase() === "underline"
+                ? "u"
+                : range.style.toLowerCase() === "strikethrough"
+                  ? "s"
+                  : range.style.toLowerCase() === "code"
+                    ? "code"
+                    : null;
+        if (tag) {
+          const wrapper = document.createElement(tag);
+          node.append(wrapper);
+          node = wrapper;
+        }
+      }
+    }
+    node.append(document.createTextNode(text.slice(start, end)));
+  }
+}
+
+function appendArticleContent(
+  document: Document,
+  parent: Element,
+  article: XArticleContent,
+) {
+  const section = document.createElement("section");
+  section.setAttribute("data-x-article", "true");
+  const title = document.createElement("h2");
+  title.textContent = article.title;
+  section.append(title);
+
+  for (const block of article.blocks) {
+    if (!block.text.trim()) continue;
+    const type = block.type.toLowerCase();
+    const textElement = document.createElement(
+      type === "header-one" ? "h2" : type === "header-two" ? "h3" : "p",
+    );
+    appendArticleText(
+      document,
+      textElement,
+      block.text,
+      block.inlineStyleRanges,
+    );
+    if (type === "blockquote") {
+      const quote = document.createElement("blockquote");
+      quote.append(textElement);
+      section.append(quote);
+    } else {
+      section.append(textElement);
+    }
+  }
+  parent.append(section);
+}
+
 function formatTweetSection(
   document: Document,
   tweet: XTweetRecord,
@@ -421,6 +519,10 @@ function formatTweetSection(
     cardLink.textContent = tweet.cardUrl;
     card.append(cardLink);
     section.append(card);
+  }
+
+  if (tweet.article) {
+    appendArticleContent(document, section, tweet.article);
   }
 
   const permalink = document.createElement("p");
@@ -496,6 +598,7 @@ export function buildXThreadReaderDocumentFromPosts(
         }
       : null,
     cardUrl: post.cardUrl,
+    article: post.article,
   }));
   return readerDocumentFromRecords(document, records);
 }

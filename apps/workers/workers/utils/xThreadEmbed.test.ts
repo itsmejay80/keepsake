@@ -121,4 +121,56 @@ describe("fxTweetToPost + reader formatting", () => {
       ),
     ).toBe(true);
   });
+
+  test("preserves the full body of an X Article attached to a post", () => {
+    const post = fxTweetToPost({
+      id: "2100262432413528336",
+      text: "Here's how we built Hermes. https://x.com/i/article/2100051738812452864",
+      author: { screen_name: "JacquelineSYC19", name: "Jacqueline Cheong" },
+      article: {
+        title: "How we built Hermes to support our entire team",
+        content: {
+          blocks: [
+            {
+              type: "unstyled",
+              text: "At the time of writing, every one of us works alongside Hermes.",
+              inlineStyleRanges: [],
+            },
+            {
+              type: "header-two",
+              text: "A brain with blinders",
+              inlineStyleRanges: [],
+            },
+            {
+              type: "unstyled",
+              text: "Everyone gets a sidekick.",
+              inlineStyleRanges: [{ offset: 0, length: 9, style: "Bold" }],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(post).not.toBeNull();
+    const dom = new JSDOM("<!doctype html><title>Post</title>");
+    const document = buildXThreadReaderDocumentFromPosts(
+      dom.window.document,
+      post ? [post] : [],
+    );
+
+    expect(document?.body.textContent).toContain(
+      "How we built Hermes to support our entire team",
+    );
+    expect(document?.body.textContent).toContain(
+      "At the time of writing, every one of us works alongside Hermes.",
+    );
+    expect(document?.querySelector("h3")?.textContent).toBe(
+      "A brain with blinders",
+    );
+    expect(
+      [...(document?.querySelectorAll("strong") ?? [])].some(
+        (element) => element.textContent?.trim() === "Everyone",
+      ),
+    ).toBe(true);
+  });
 });
