@@ -23,6 +23,9 @@ describe("Highlight Routes", () => {
       bookmarkId,
       startOffset: 10,
       endOffset: 20,
+      startTime: 12_000,
+      endTime: 18_000,
+      transcriptLanguage: "en",
       color: "yellow",
       text: "Test highlight text",
       note: "Test note",
@@ -32,6 +35,9 @@ describe("Highlight Routes", () => {
     expect(res.bookmarkId).toEqual(bookmarkId);
     expect(res.startOffset).toEqual(10);
     expect(res.endOffset).toEqual(20);
+    expect(res.startTime).toEqual(12_000);
+    expect(res.endTime).toEqual(18_000);
+    expect(res.transcriptLanguage).toEqual("en");
     expect(res.color).toEqual("yellow");
     expect(res.text).toEqual("Test highlight text");
     expect(res.note).toEqual("Test note");

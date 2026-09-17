@@ -12,6 +12,7 @@ import {
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+import { videoTranscriptToText } from "@karakeep/shared/types/videoTranscripts";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import {
   BookmarkSearchDocument,
@@ -71,6 +72,7 @@ async function runIndex(
       link: true,
       text: true,
       asset: true,
+      videoTranscripts: true,
       tagsOnBookmarks: {
         with: {
           tag: true,
@@ -94,10 +96,16 @@ async function runIndex(
           url: bookmark.link.url,
           linkTitle: bookmark.link.title,
           description: bookmark.link.description,
-          content: await Bookmark.getBookmarkPlainTextContent(
-            bookmark.link,
-            bookmark.userId,
-          ),
+          content:
+            videoTranscriptToText(
+              bookmark.videoTranscripts.find(
+                (transcript) => transcript.isDefault,
+              ) ?? bookmark.videoTranscripts[0],
+            ) ??
+            (await Bookmark.getBookmarkPlainTextContent(
+              bookmark.link,
+              bookmark.userId,
+            )),
           publisher: bookmark.link.publisher,
           author: bookmark.link.author,
           datePublished: bookmark.link.datePublished,

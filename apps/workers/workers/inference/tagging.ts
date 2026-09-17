@@ -3,6 +3,7 @@ import { getBookmarkDomain } from "network";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
+import { videoTranscriptToText } from "@karakeep/shared/types/videoTranscripts";
 
 import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import type {
@@ -98,10 +99,15 @@ async function buildPrompt(
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
     let content =
+      videoTranscriptToText(
+        bookmark.videoTranscripts.find((transcript) => transcript.isDefault) ??
+          bookmark.videoTranscripts[0],
+      ) ??
       (await Bookmark.getBookmarkPlainTextContent(
         bookmark.link,
         bookmark.userId,
-      )) ?? "";
+      )) ??
+      "";
 
     if (!bookmark.link.description && !content) {
       // No content to infer from; signal skip to avoid marking job as failed
@@ -519,6 +525,7 @@ async function fetchBookmark(linkId: string) {
       link: true,
       text: true,
       asset: true,
+      videoTranscripts: true,
     },
   });
 }

@@ -813,15 +813,20 @@ export class Bookmark extends BareBookmark {
 
   asReadableContent(
     format: ZBookmarkReadableContentFormat,
+    contentOverride?: string | null,
   ): ZBookmarkReadableContent {
     let content: string;
     switch (this.bookmark.content.type) {
       case BookmarkTypes.LINK: {
-        const htmlContent = this.bookmark.content.htmlContent ?? "";
-        content =
-          format === "markdown"
-            ? turndownService.turndown(htmlContent)
-            : htmlToPlainText(htmlContent);
+        if (contentOverride) {
+          content = contentOverride;
+        } else {
+          const htmlContent = this.bookmark.content.htmlContent ?? "";
+          content =
+            format === "markdown"
+              ? turndownService.turndown(htmlContent)
+              : htmlToPlainText(htmlContent);
+        }
         break;
       }
       case BookmarkTypes.TEXT:

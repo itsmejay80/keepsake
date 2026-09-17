@@ -39,6 +39,7 @@ import {
 } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
+import { shouldProcessVideoUrl } from "@karakeep/shared/utils/video";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 import {
@@ -307,8 +308,8 @@ async function enqueuePostCrawlJobs(
   // Update the search index
   await triggerSearchReindex(bookmarkId, enqueueOpts);
 
-  if (serverConfig.crawler.downloadVideo) {
-    // Trigger a potential download of a video from the URL
+  if (shouldProcessVideoUrl(url, serverConfig.crawler.downloadVideo)) {
+    // YouTube transcripts are extracted even when full video storage is off.
     await VideoWorkerQueue.enqueue(
       {
         bookmarkId,

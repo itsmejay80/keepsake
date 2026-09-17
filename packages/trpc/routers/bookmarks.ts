@@ -14,6 +14,7 @@ import {
   tagsOnBookmarks,
   userReadingProgress,
   users,
+  videoTranscripts,
 } from "@karakeep/db/schema";
 import {
   addLogFields,
@@ -62,6 +63,10 @@ import {
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
+import {
+  videoTranscriptToTimestampedText,
+  zVideoTranscriptSchema,
+} from "@karakeep/shared/types/videoTranscripts";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 import type { VectorFilterQuery } from "@karakeep/shared/vectorStore";
 import { bookmarkCreationCounter } from "../stats";
@@ -916,6 +921,20 @@ export const bookmarksAppRouter = router({
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
     }),
+  getVideoTranscripts: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .output(z.object({ transcripts: z.array(zVideoTranscriptSchema) }))
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      const transcripts = await ctx.db.query.videoTranscripts.findMany({
+        where: eq(videoTranscripts.bookmarkId, input.bookmarkId),
+        orderBy: (transcript, { desc, asc }) => [
+          desc(transcript.isDefault),
+          asc(transcript.language),
+        ],
+      });
+      return { transcripts };
+    }),
   getBookmarkReadableContent: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
     .input(
@@ -927,9 +946,18 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkReadableContentSchema)
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
-      return (
-        await Bookmark.fromId(ctx, input.bookmarkId, /* includeContent: */ true)
-      ).asReadableContent(input.format);
+      const [bookmark, transcripts] = await Promise.all([
+        Bookmark.fromId(ctx, input.bookmarkId, /* includeContent: */ true),
+        ctx.db.query.videoTranscripts.findMany({
+          where: eq(videoTranscripts.bookmarkId, input.bookmarkId),
+        }),
+      ]);
+      const transcript =
+        transcripts.find((item) => item.isDefault) ?? transcripts[0];
+      return bookmark.asReadableContent(
+        input.format,
+        videoTranscriptToTimestampedText(transcript),
+      );
     }),
   searchBookmarks: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
@@ -1520,15 +1548,20 @@ export const bookmarksAppRouter = router({
         });
       }
 
-      const content = await Bookmark.getBookmarkPlainTextContent(
-        bookmark,
-        ctx.user.id,
-      );
+      const transcripts = await ctx.db.query.videoTranscripts.findMany({
+        where: eq(videoTranscripts.bookmarkId, input.bookmarkId),
+      });
+      const transcript =
+        transcripts.find((item) => item.isDefault) ?? transcripts[0];
+      const transcriptText = videoTranscriptToTimestampedText(transcript);
+      const content =
+        transcriptText ??
+        (await Bookmark.getBookmarkPlainTextContent(bookmark, ctx.user.id));
 
       const bookmarkDetails = `
 Title: ${bookmark.title ?? ""}
 Description: ${bookmark.description ?? ""}
-Content: ${content}
+${transcriptText ? "Timestamped transcript (cite relevant timestamps in the summary)" : "Content"}: ${content}
 Publisher: ${bookmark.publisher ?? ""}
 Author: ${bookmark.author ?? ""}
 `;

@@ -14,6 +14,7 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { EmbeddingClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
+import { videoTranscriptToText } from "@karakeep/shared/types/videoTranscripts";
 import {
   DequeuedJob,
   DequeuedJobError,
@@ -153,6 +154,7 @@ async function fetchBookmark(bookmarkId: string) {
       link: true,
       text: true,
       asset: true,
+      videoTranscripts: true,
       tagsOnBookmarks: {
         with: {
           tag: true,
@@ -285,10 +287,15 @@ async function buildEmbeddingText(
     appendProfileField(parts, "Author", bookmark.link.author);
     appendProfileField(parts, "Publisher", bookmark.link.publisher);
     appendProfileField(parts, "Published", bookmark.link.datePublished);
-    rawContent = await Bookmark.getBookmarkPlainTextContent(
-      bookmark.link,
-      bookmark.userId,
-    );
+    rawContent =
+      videoTranscriptToText(
+        bookmark.videoTranscripts.find((transcript) => transcript.isDefault) ??
+          bookmark.videoTranscripts[0],
+      ) ??
+      (await Bookmark.getBookmarkPlainTextContent(
+        bookmark.link,
+        bookmark.userId,
+      ));
   } else if (bookmark.text) {
     appendProfileField(
       parts,

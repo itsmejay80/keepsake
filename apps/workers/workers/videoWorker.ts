@@ -1,6 +1,7 @@
 import fs from "fs";
 import * as os from "os";
 import path from "path";
+import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
 import {
@@ -11,11 +12,14 @@ import {
 import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
-import { AssetTypes } from "@karakeep/db/schema";
+import { AssetTypes, videoTranscripts } from "@karakeep/db/schema";
 import {
   addLogFields,
+  EmbeddingsQueue,
+  OpenAIQueue,
   QuotaService,
   StorageQuotaError,
+  triggerSearchReindex,
   VideoWorkerQueue,
   ZVideoRequest,
   zvideoRequestSchema,
@@ -29,6 +33,11 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
+import type { ZVideoTranscriptSegment } from "@karakeep/shared/types/videoTranscripts";
+import {
+  selectTranscriptLanguages,
+  VideoCaptionMetadata,
+} from "@karakeep/shared/utils/video";
 
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
@@ -79,12 +88,16 @@ function prepareYtDlpArguments(
   url: string,
   proxy: string | undefined,
   assetPath: string,
+  transcriptLanguages: string[],
 ) {
   // yt-dlp performs its own HTTP requests and can follow redirects that this
   // process cannot validate. Full SSRF protection depends on an egress proxy or
   // network policy that blocks internal/private targets.
   const ytDlpArguments = [url];
-  if (serverConfig.crawler.maxVideoDownloadSize > 0) {
+  if (
+    serverConfig.crawler.downloadVideo &&
+    serverConfig.crawler.maxVideoDownloadSize > 0
+  ) {
     ytDlpArguments.push(
       "-f",
       `best[filesize<${serverConfig.crawler.maxVideoDownloadSize}M]`,
@@ -92,6 +105,19 @@ function prepareYtDlpArguments(
   }
 
   ytDlpArguments.push(...serverConfig.crawler.ytDlpArguments);
+  if (transcriptLanguages.length > 0) {
+    ytDlpArguments.push(
+      "--write-subs",
+      "--write-auto-subs",
+      "--sub-langs",
+      transcriptLanguages.join(","),
+      "--sub-format",
+      "json3",
+    );
+  }
+  if (!serverConfig.crawler.downloadVideo) {
+    ytDlpArguments.push("--skip-download");
+  }
   ytDlpArguments.push("-o", assetPath);
   ytDlpArguments.push("--no-playlist");
   if (proxy) {
@@ -110,13 +136,6 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     userId,
     videoAssetId: oldVideoAssetId,
   } = await getBookmarkDetails(bookmarkId);
-
-  if (!serverConfig.crawler.downloadVideo) {
-    logger.info(
-      `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it is disabled in the config.`,
-    );
-    return;
-  }
 
   const runProxy = selectRunProxies();
   let normalizedUrl: string;
@@ -141,12 +160,28 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   await fs.promises.mkdir(TMP_FOLDER, { recursive: true });
 
   const proxy = getProxyAgent(normalizedUrl, runProxy);
+  let info: YtDlpInfo;
+  try {
+    info = await fetchYtDlpInfo(
+      normalizedUrl,
+      proxy?.proxy.toString(),
+      job.abortSignal,
+    );
+  } catch (error) {
+    logger.warn(
+      `[VideoCrawler][${jobId}] Failed to inspect media at "${normalizedUrl}": ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return;
+  }
+  const transcriptLanguages = selectTranscriptLanguages(info);
   const ytDlpArguments = prepareYtDlpArguments(
     normalizedUrl,
     proxy?.proxy.toString(),
     assetPath,
+    transcriptLanguages,
   );
 
+  let transcripts: Awaited<ReturnType<typeof readDownloadedTranscripts>> = [];
   try {
     logger.info(
       `[VideoCrawler][${jobId}] Attempting to download a file from "${normalizedUrl}" to "${assetPath}" using the following arguments: "${ytDlpArguments}"`,
@@ -155,14 +190,16 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     await execa("yt-dlp", ytDlpArguments, {
       cancelSignal: job.abortSignal,
     });
-    const downloadPath = await findAssetFile(videoAssetId);
-    if (!downloadPath) {
+    transcripts = await readDownloadedTranscripts(videoAssetId, info);
+    await deleteTranscriptSidecars(videoAssetId);
+    const downloadPath = await findVideoAssetFile(videoAssetId);
+    if (!downloadPath && transcripts.length === 0) {
       logger.info(
-        "[VideoCrawler][${jobId}] yt-dlp didn't download anything. Skipping ...",
+        `[VideoCrawler][${jobId}] yt-dlp found neither downloadable media nor captions. Skipping ...`,
       );
       return;
     }
-    assetPath = downloadPath;
+    if (downloadPath) assetPath = downloadPath;
   } catch (e) {
     const err = e as Error;
     if (
@@ -174,7 +211,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       );
       return;
     }
-    const genericError = `[VideoCrawler][${jobId}] Failed to download a file from "${normalizedUrl}" to "${assetPath}"`;
+    const genericError = `[VideoCrawler][${jobId}] Failed to download media or captions from "${normalizedUrl}"`;
     if ("stderr" in err) {
       logger.error(`${genericError}: ${err.stderr}`);
     } else {
@@ -183,6 +220,33 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     await deleteLeftOverAssetFile(jobId, videoAssetId);
     return;
   }
+
+  if (transcripts.length > 0) {
+    replaceTranscripts(bookmarkId, transcripts);
+    const enqueueOpts = { priority: job.priority, groupId: userId };
+    await Promise.all([
+      triggerSearchReindex(bookmarkId, enqueueOpts),
+      EmbeddingsQueue.enqueue(
+        { bookmarkId, type: "embed", runTaggingOnComplete: false },
+        enqueueOpts,
+      ),
+      OpenAIQueue.enqueue({ bookmarkId, type: "summarize" }, enqueueOpts),
+    ]);
+    logger.info(
+      `[VideoCrawler][${jobId}] Stored ${transcripts.length} transcript language(s) for "${normalizedUrl}"`,
+    );
+  }
+
+  if (!serverConfig.crawler.downloadVideo) {
+    logger.info(
+      `[VideoCrawler][${jobId}] Skipping video storage because it is disabled in the config.`,
+    );
+    return;
+  }
+
+  const downloadPath = await findVideoAssetFile(videoAssetId);
+  if (!downloadPath) return;
+  assetPath = downloadPath;
 
   logger.info(
     `[VideoCrawler][${jobId}] Finished downloading a file from "${normalizedUrl}" to "${assetPath}"`,
@@ -207,8 +271,8 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       quotaApproved,
     });
 
-    await db.transaction(async (txn) => {
-      await updateAsset(
+    db.transaction((txn) => {
+      updateAsset(
         oldVideoAssetId,
         {
           id: videoAssetId,
@@ -250,12 +314,14 @@ async function deleteLeftOverAssetFile(
 ): Promise<void> {
   let assetFile;
   try {
-    assetFile = await findAssetFile(assetId);
+    assetFile = await findVideoAssetFile(assetId);
   } catch {
     // ignore exception, no asset file was found
+    await deleteTranscriptSidecars(assetId);
     return;
   }
   if (!assetFile) {
+    await deleteTranscriptSidecars(assetId);
     return;
   }
   logger.info(
@@ -268,6 +334,7 @@ async function deleteLeftOverAssetFile(
       `[VideoCrawler][${jobId}] Failed deleting leftover video asset "${assetFile}".`,
     );
   }
+  await deleteTranscriptSidecars(assetId);
 }
 
 /**
@@ -276,12 +343,150 @@ async function deleteLeftOverAssetFile(
  * @param assetId the id of the asset to search
  * @returns the path to the downloaded asset
  */
-async function findAssetFile(assetId: string): Promise<string | null> {
+async function findVideoAssetFile(assetId: string): Promise<string | null> {
   const files = await fs.promises.readdir(TMP_FOLDER);
   for (const file of files) {
-    if (file.startsWith(assetId)) {
+    if (
+      file.startsWith(assetId) &&
+      !file.endsWith(".json3") &&
+      !file.endsWith(".info.json")
+    ) {
       return path.join(TMP_FOLDER, file);
     }
   }
   return null;
+}
+
+type YtDlpInfo = VideoCaptionMetadata;
+
+interface Json3Subtitle {
+  events?: {
+    tStartMs?: number;
+    dDurationMs?: number;
+    segs?: { utf8?: string }[];
+  }[];
+}
+
+async function fetchYtDlpInfo(
+  url: string,
+  proxy: string | undefined,
+  abortSignal: AbortSignal,
+): Promise<YtDlpInfo> {
+  const args = [
+    url,
+    ...serverConfig.crawler.ytDlpArguments,
+    "--skip-download",
+    "--dump-single-json",
+    "--no-playlist",
+  ];
+  if (proxy) args.push("--proxy", proxy);
+  const result = await execa("yt-dlp", args, { cancelSignal: abortSignal });
+  return JSON.parse(result.stdout) as YtDlpInfo;
+}
+
+function replaceTranscripts(
+  bookmarkId: string,
+  transcripts: Awaited<ReturnType<typeof readDownloadedTranscripts>>,
+) {
+  db.transaction((txn) => {
+    txn
+      .delete(videoTranscripts)
+      .where(eq(videoTranscripts.bookmarkId, bookmarkId))
+      .run();
+    txn
+      .insert(videoTranscripts)
+      .values(
+        transcripts.map((transcript, index) => ({
+          bookmarkId,
+          ...transcript,
+          isDefault: index === 0,
+        })),
+      )
+      .run();
+  });
+}
+
+async function readDownloadedTranscripts(assetId: string, info: YtDlpInfo) {
+  const files = await fs.promises.readdir(TMP_FOLDER);
+
+  const subtitleFiles = files.filter(
+    (file) => file.startsWith(`${assetId}.`) && file.endsWith(".json3"),
+  );
+  const parsed: {
+    language: string;
+    languageName: string;
+    isAutoGenerated: boolean;
+    segments: ZVideoTranscriptSegment[];
+  }[] = [];
+  for (const file of subtitleFiles) {
+    try {
+      const language = file.slice(assetId.length + 1, -".json3".length);
+      const subtitle: Json3Subtitle = JSON.parse(
+        await fs.promises.readFile(path.join(TMP_FOLDER, file), "utf8"),
+      );
+      const segments: ZVideoTranscriptSegment[] = [];
+      for (const event of subtitle.events ?? []) {
+        const text = (event.segs ?? [])
+          .map((segment) => segment.utf8 ?? "")
+          .join("")
+          .replace(/<[^>]+>/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (!text || event.tStartMs === undefined) {
+          continue;
+        }
+        const previous = segments.at(-1);
+        if (previous?.text === text) {
+          previous.endMs = Math.max(
+            previous.endMs,
+            event.tStartMs + (event.dDurationMs ?? 0),
+          );
+          continue;
+        }
+        segments.push({
+          startMs: event.tStartMs,
+          endMs: event.tStartMs + (event.dDurationMs ?? 0),
+          text,
+        });
+      }
+      const captionMetadata =
+        info.subtitles?.[language] ?? info.automatic_captions?.[language];
+      parsed.push({
+        language,
+        languageName: captionMetadata?.[0]?.name ?? language,
+        isAutoGenerated:
+          !(language in (info.subtitles ?? {})) &&
+          language in (info.automatic_captions ?? {}),
+        segments,
+      });
+    } catch (error) {
+      logger.warn(
+        `[VideoCrawler] Failed to parse downloaded subtitle "${file}": ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  return parsed
+    .filter((transcript) => transcript.segments.length > 0)
+    .sort((a, b) => {
+      if (a.language === info.language) return -1;
+      if (b.language === info.language) return 1;
+      if (a.isAutoGenerated !== b.isAutoGenerated) {
+        return a.isAutoGenerated ? 1 : -1;
+      }
+      return a.language.localeCompare(b.language);
+    });
+}
+
+async function deleteTranscriptSidecars(assetId: string) {
+  const files = await fs.promises.readdir(TMP_FOLDER);
+  await Promise.all(
+    files
+      .filter(
+        (file) =>
+          file.startsWith(`${assetId}.`) &&
+          (file.endsWith(".json3") || file.endsWith(".info.json")),
+      )
+      .map((file) => fs.promises.rm(path.join(TMP_FOLDER, file))),
+  );
 }

@@ -12,6 +12,7 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClient } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
+import { videoTranscriptToTimestampedText } from "@karakeep/shared/types/videoTranscripts";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -34,6 +35,7 @@ async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
           url: true,
         },
       },
+      videoTranscripts: true,
       // If assets (like PDFs with extracted text) should be summarized, extend here
     },
   });
@@ -98,7 +100,13 @@ export async function runSummarization(
     const link = bookmarkData.link;
 
     // Extract plain text content from HTML for summarization
+    const transcriptText = videoTranscriptToTimestampedText(
+      bookmarkData.videoTranscripts.find(
+        (transcript) => transcript.isDefault,
+      ) ?? bookmarkData.videoTranscripts[0],
+    );
     let content =
+      transcriptText ??
       (await Bookmark.getBookmarkPlainTextContent(link, bookmarkData.userId)) ??
       "";
 
@@ -113,7 +121,7 @@ export async function runSummarization(
     textToSummarize = `
 Title: ${link.title ?? ""}
 Description: ${link.description ?? ""}
-Content: ${content}
+${transcriptText ? "Timestamped transcript (cite relevant timestamps in the summary)" : "Content"}: ${content}
 Publisher: ${link.publisher ?? ""}
 Author: ${link.author ?? ""}
 URL: ${link.url ?? ""}

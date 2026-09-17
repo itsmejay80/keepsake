@@ -36,6 +36,16 @@ export default function HighlightCard({
   );
 
   const onBookmarkClick = () => {
+    if (highlight.startTime != null) {
+      window.dispatchEvent(
+        new CustomEvent("karakeep:seek-video", {
+          detail: {
+            milliseconds: highlight.startTime,
+            highlightId: highlight.id,
+          },
+        }),
+      );
+    }
     document
       .querySelector(`[data-highlight-id="${highlight.id}"]`)
       ?.scrollIntoView({
@@ -62,6 +72,14 @@ export default function HighlightCard({
   return (
     <div className={cn("flex items-center justify-between", className)}>
       <Wrapper className="flex flex-col gap-2 text-left">
+        {highlight.startTime != null && (
+          <span className="px-2 font-mono text-xs text-muted-foreground">
+            {Math.floor(highlight.startTime / 60000)}:
+            {Math.floor((highlight.startTime % 60000) / 1000)
+              .toString()
+              .padStart(2, "0")}
+          </span>
+        )}
         <blockquote
           cite={highlight.bookmarkId}
           className={cn(
