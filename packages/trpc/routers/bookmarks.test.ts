@@ -1481,6 +1481,85 @@ describe("Bookmark Routes", () => {
       expect(progress.readingProgressAnchor).toBe("Updated anchor");
     });
 
+    test<CustomTestContext>("filters bookmarks by reading lifecycle", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const unread = await api.createBookmark({
+        url: "https://example.com/unread",
+        type: BookmarkTypes.LINK,
+      });
+      const reading = await api.createBookmark({
+        url: "https://example.com/reading",
+        type: BookmarkTypes.LINK,
+      });
+      const finished = await api.createBookmark({
+        url: "https://example.com/finished",
+        type: BookmarkTypes.LINK,
+      });
+
+      await api.updateReadingProgress({
+        bookmarkId: reading.id,
+        readingProgressOffset: 100,
+        readingProgressPercent: 35,
+        seen: true,
+      });
+      await api.updateReadingProgress({
+        bookmarkId: finished.id,
+        readingProgressOffset: 200,
+        readingProgressPercent: 100,
+        seen: true,
+      });
+
+      const [unreadResult, readingResult, finishedResult] = await Promise.all([
+        api.getBookmarks({ readingState: "unread" }),
+        api.getBookmarks({ readingState: "reading" }),
+        api.getBookmarks({ readingState: "finished" }),
+      ]);
+
+      expect(unreadResult.bookmarks.map((bookmark) => bookmark.id)).toContain(
+        unread.id,
+      );
+      expect(readingResult.bookmarks).toMatchObject([
+        {
+          id: reading.id,
+          readingProgressPercent: 35,
+          readingProgressSeen: true,
+        },
+      ]);
+      expect(finishedResult.bookmarks).toMatchObject([
+        {
+          id: finished.id,
+          readingProgressPercent: 100,
+          readingProgressSeen: true,
+        },
+      ]);
+    });
+
+    test<CustomTestContext>("auto-archives owned bookmarks when finished", async ({
+      apiCallers,
+    }) => {
+      const caller = apiCallers[0];
+      const bookmark = await caller.bookmarks.createBookmark({
+        url: "https://example.com/auto-archive",
+        type: BookmarkTypes.LINK,
+      });
+      await caller.users.updateSettings({ autoArchiveFinished: true });
+
+      await caller.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 500,
+        readingProgressPercent: 100,
+        seen: true,
+      });
+
+      const updated = await caller.bookmarks.getBookmark({
+        bookmarkId: bookmark.id,
+      });
+      expect(updated.archived).toBe(true);
+      expect(updated.readingProgressPercent).toBe(100);
+    });
+
     test<CustomTestContext>("two users have independent progress on same bookmark", async ({
       apiCallers,
     }) => {

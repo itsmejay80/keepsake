@@ -83,6 +83,8 @@ export class ImportSessionsService {
       listIds: string[];
       sourceAddedAt?: Date;
       archived?: boolean;
+      readingProgressPercent?: number;
+      seen?: boolean;
     }[],
   ): Promise<void> {
     if (session.status !== "staging") {
@@ -115,6 +117,8 @@ export class ImportSessionsService {
         listIds: bookmark.listIds,
         sourceAddedAt: bookmark.sourceAddedAt,
         archived: bookmark.archived,
+        readingProgressPercent: bookmark.readingProgressPercent,
+        seen: bookmark.seen,
         status: "pending" as const,
       })),
     );

@@ -187,7 +187,10 @@
         "save_hint": "Save settings for this device only or sync across all devices",
         "adjust_hint": "Adjust settings above to preview changes",
         "clear_override_hint": "Clear device override to use global setting ({{value}})",
-        "preview_inline": "(preview)"
+        "preview_inline": "(preview)",
+        "auto_archive_finished": "Archive finished articles",
+        "auto_archive_finished_description": "Automatically archive articles when you mark them finished.",
+        "auto_archive_updated": "Reading preference updated"
       }
     },
     "stats": {
@@ -1166,6 +1169,16 @@
     "download": "Download",
     "close": "Close",
     "generating": "Generating..."
+  },
+  "reading": {
+    "unread": "Unread",
+    "reading": "Reading",
+    "finished": "Finished",
+    "continue_reading": "Continue reading",
+    "view_all": "View all",
+    "percent_read": "{{percent}}% read",
+    "reached_end": "You’ve reached the end of this article.",
+    "mark_finished": "Mark finished"
   },
   "keyboard_shortcuts": {
     "title": "Keyboard Shortcuts",

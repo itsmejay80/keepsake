@@ -43,6 +43,7 @@ import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
 import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
 import { NotePreview } from "./NotePreview";
+import { ReadingProgressIndicator } from "./ReadingProgressIndicator";
 import TagList from "./TagList";
 
 interface Props {
@@ -77,7 +78,10 @@ function BottomRow({
           <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
         </Link>
       </div>
-      <BookmarkActionBar bookmark={bookmark} />
+      <div className="flex shrink-0 items-center gap-1.5">
+        <ReadingProgressIndicator bookmark={bookmark} />
+        <BookmarkActionBar bookmark={bookmark} />
+      </div>
     </div>
   );
 }
@@ -494,6 +498,7 @@ function CompactView({
           </Link>
         </div>
         <div className="relative z-[60] flex shrink-0 items-center">
+          <ReadingProgressIndicator bookmark={bookmark} compact />
           <HoverActionBar bookmark={bookmark} inline />
           <BookmarkActionBar
             bookmark={bookmark}

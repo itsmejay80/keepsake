@@ -99,6 +99,13 @@ export const importSessionsRouter = router({
               listIds: z.array(z.string()).default([]),
               sourceAddedAt: z.date().optional(),
               archived: z.boolean().optional(),
+              readingProgressPercent: z
+                .number()
+                .int()
+                .min(0)
+                .max(100)
+                .optional(),
+              seen: z.boolean().optional(),
             }),
           )
           .max(50),

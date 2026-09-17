@@ -198,6 +198,14 @@ export const zBareBookmarkSchema = z.object({
   summary: z.string().nullish(),
   source: zBookmarkSourceSchema.nullish(),
   userId: z.string(),
+  readingProgressPercent: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .nullable()
+    .optional(),
+  readingProgressSeen: z.boolean().optional(),
 });
 
 export type ZBareBookmark = z.infer<typeof zBareBookmarkSchema>;
@@ -299,6 +307,7 @@ export const zGetBookmarksRequestSchema = z.object({
   useCursorV2: z.boolean().optional(),
   sortOrder: zSortOrder.exclude(["relevance"]).optional().default("desc"),
   includeContent: z.boolean().optional().default(false),
+  readingState: z.enum(["unread", "reading", "finished"]).optional(),
 });
 export type ZGetBookmarksRequest = z.infer<typeof zGetBookmarksRequestSchema>;
 

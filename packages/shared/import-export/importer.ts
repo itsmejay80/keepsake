@@ -18,6 +18,8 @@ export interface StagedBookmark {
   listIds: string[];
   sourceAddedAt?: Date;
   archived?: boolean;
+  readingProgressPercent?: number;
+  seen?: boolean;
 }
 
 export interface ImportDeps {
@@ -254,6 +256,8 @@ export async function importBookmarksFromFile(
         ? new Date(bookmark.addDate * 1000)
         : undefined,
       archived: bookmark.archived,
+      readingProgressPercent: bookmark.readingProgressPercent,
+      seen: bookmark.seen,
     };
   });
 

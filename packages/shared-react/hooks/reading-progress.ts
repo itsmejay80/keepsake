@@ -14,6 +14,7 @@ interface UseReadingProgressOptions {
  *
  * Handles:
  * - Fetching reading progress via its own tRPC query
+ * - Marking the article seen when the reader opens it
  * - Capturing initial reading position (stable across query re-fetches)
  * - "Continue reading" banner state and auto-dismiss on scroll past 15%
  * - Lazy saving via onSavePosition (idle, visibility change, unmount)
@@ -32,6 +33,7 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   const readingProgressOffset = progressData?.readingProgressOffset;
   const readingProgressAnchor = progressData?.readingProgressAnchor;
   const readingProgressPercent = progressData?.readingProgressPercent;
+  const readingProgressSeen = progressData?.seen;
 
   // Capture initial reading progress on first load — stays stable across re-fetches
   const initialProgressRef = useRef<{
@@ -41,11 +43,13 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   } | null>(null);
   const previousBookmarkIdRef = useRef<string | null>(null);
   const lastSavedOffset = useRef<number | null>(null);
+  const hasMarkedSeenRef = useRef(false);
 
   if (previousBookmarkIdRef.current !== bookmarkId) {
     previousBookmarkIdRef.current = bookmarkId;
     initialProgressRef.current = null;
     lastSavedOffset.current = null;
+    hasMarkedSeenRef.current = false;
   }
 
   // Only capture once data has loaded (offset transitions from undefined to a value)
@@ -88,15 +92,36 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   }, [bookmarkId]);
 
   // Save mutation
-  const { mutate: updateProgress } = useMutation(
+  const { mutate: updateProgress, isPending: isUpdatingProgress } = useMutation(
     api.bookmarks.updateReadingProgress.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
           api.bookmarks.getReadingProgress.pathFilter(),
         );
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
       },
     }),
   );
+
+  useEffect(() => {
+    if (readingProgressSeen !== false || hasMarkedSeenRef.current) return;
+    hasMarkedSeenRef.current = true;
+    updateProgress({
+      bookmarkId,
+      readingProgressOffset: initialOffset ?? 0,
+      readingProgressAnchor: initialAnchor,
+      readingProgressPercent: readingProgressPercent ?? 0,
+      seen: true,
+    });
+  }, [
+    bookmarkId,
+    initialAnchor,
+    initialOffset,
+    readingProgressPercent,
+    readingProgressSeen,
+    updateProgress,
+  ]);
 
   // Lazy save — called by ScrollProgressTracker on idle/visibility/beforeunload/unmount
   const onSavePosition = useCallback(
@@ -108,7 +133,10 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
         bookmarkId,
         readingProgressOffset: position.offset,
         readingProgressAnchor: position.anchor,
-        readingProgressPercent: position.percent,
+        // Reaching the bottom should surface the explicit completion action;
+        // only "Mark finished" persists 100%.
+        readingProgressPercent: Math.min(position.percent, 99),
+        seen: true,
       });
     },
     [bookmarkId, updateProgress],
@@ -130,12 +158,25 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
     setBannerDismissed(true);
   }, []);
 
+  const markFinished = useCallback(() => {
+    updateProgress({
+      bookmarkId,
+      readingProgressOffset: lastSavedOffset.current ?? initialOffset ?? 0,
+      readingProgressAnchor: initialAnchor,
+      readingProgressPercent: 100,
+      seen: true,
+    });
+  }, [bookmarkId, initialAnchor, initialOffset, updateProgress]);
+
   return {
     // Banner
     showBanner,
     bannerPercent: initialPercent,
     onContinue,
     onDismiss,
+    isFinished: readingProgressPercent === 100,
+    isUpdatingProgress,
+    markFinished,
     // ScrollProgressTracker props
     restorePosition: restoreRequested,
     readingProgressOffset: initialOffset,

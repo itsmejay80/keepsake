@@ -190,6 +190,7 @@ describe("User Routes", () => {
       readerFontFamily: null,
       readerFontSize: null,
       readerLineHeight: null,
+      autoArchiveFinished: false,
 
       // AI Settings
       autoSummarizationEnabled: null,
@@ -210,6 +211,7 @@ describe("User Routes", () => {
       readerFontFamily: "serif",
       readerFontSize: 12,
       readerLineHeight: 1.5,
+      autoArchiveFinished: false,
 
       // AI Settings
       autoSummarizationEnabled: true,
@@ -232,6 +234,7 @@ describe("User Routes", () => {
       readerFontFamily: "serif",
       readerFontSize: 12,
       readerLineHeight: 1.5,
+      autoArchiveFinished: false,
 
       // AI Settings
       autoSummarizationEnabled: true,

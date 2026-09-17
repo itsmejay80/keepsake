@@ -13,6 +13,7 @@ import {
   lt,
   lte,
   or,
+  sql,
   SQL,
 } from "drizzle-orm";
 import invariant from "tiny-invariant";
@@ -31,6 +32,7 @@ import {
   bookmarkTexts,
   rssFeedImportsTable,
   tagsOnBookmarks,
+  userReadingProgress,
 } from "@karakeep/db/schema";
 import { EmbeddingsQueue, SearchIndexingQueue } from "@karakeep/shared-server";
 
@@ -493,6 +495,30 @@ export class Bookmark extends BareBookmark {
         ? eq(bookmarks.favourited, input.favourited)
         : undefined,
       input.ids ? inArray(bookmarks.id, input.ids) : undefined,
+      input.readingState ? eq(bookmarks.type, BookmarkTypes.LINK) : undefined,
+      input.readingState === "unread"
+        ? sql`not exists (
+            select 1 from ${userReadingProgress}
+            where ${userReadingProgress.bookmarkId} = ${bookmarks.id}
+              and ${userReadingProgress.userId} = ${ctx.user.id}
+              and (${userReadingProgress.seen} = 1 or coalesce(${userReadingProgress.readingProgressPercent}, 0) > 0)
+          )`
+        : input.readingState === "reading"
+          ? sql`exists (
+              select 1 from ${userReadingProgress}
+              where ${userReadingProgress.bookmarkId} = ${bookmarks.id}
+                and ${userReadingProgress.userId} = ${ctx.user.id}
+                and (${userReadingProgress.seen} = 1 or coalesce(${userReadingProgress.readingProgressPercent}, 0) > 0)
+                and coalesce(${userReadingProgress.readingProgressPercent}, 0) < 100
+            )`
+          : input.readingState === "finished"
+            ? sql`exists (
+                select 1 from ${userReadingProgress}
+                where ${userReadingProgress.bookmarkId} = ${bookmarks.id}
+                  and ${userReadingProgress.userId} = ${ctx.user.id}
+                  and ${userReadingProgress.readingProgressPercent} >= 100
+              )`
+            : undefined,
     ];
 
     // Build ORDER BY clause
@@ -737,6 +763,33 @@ export class Bookmark extends BareBookmark {
     );
 
     const bookmarksArr = Object.values(bookmarksRes);
+
+    if (bookmarksArr.length > 0) {
+      const progressRows = await ctx.db
+        .select({
+          bookmarkId: userReadingProgress.bookmarkId,
+          percent: userReadingProgress.readingProgressPercent,
+          seen: userReadingProgress.seen,
+        })
+        .from(userReadingProgress)
+        .where(
+          and(
+            eq(userReadingProgress.userId, ctx.user.id),
+            inArray(
+              userReadingProgress.bookmarkId,
+              bookmarksArr.map((bookmark) => bookmark.id),
+            ),
+          ),
+        );
+      const progressByBookmark = new Map(
+        progressRows.map((progress) => [progress.bookmarkId, progress]),
+      );
+      for (const bookmark of bookmarksArr) {
+        const progress = progressByBookmark.get(bookmark.id);
+        bookmark.readingProgressPercent = progress?.percent ?? null;
+        bookmark.readingProgressSeen = progress?.seen ?? false;
+      }
+    }
 
     // Fetch HTML content from assets for bookmarks that have contentAssetId (large content)
     if (input.includeContent) {

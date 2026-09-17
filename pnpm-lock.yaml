@@ -15,6 +15,7 @@ overrides:
 
 patchedDependencies:
   expo-modules-jsi@56.0.12: 25bbfeac6ce3cacb0d88c14be56e063f908a01e58961da32c2c42d98e3bb7491
+  next-themes@0.4.6: d5d3f6fccf19abc9f9510e0cb05b04476717842b72830eba0b1ee95507014317
   playwright-extra@4.3.6: cc2a1c1903e66d7f6cea77c615cb9ae3b36a694502c1c588c3e34d28aa925aac
   react-native-css-interop@0.2.1: d6a165f45c53b03f2c390496a57bf96a4f79884fb2a0f804d896ef7acab1e12a
   react-native@0.85.3: 7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1
@@ -758,7 +759,7 @@ importers:
         version: 15.3.1(i18next@23.16.5)(next@16.2.12(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(sass@1.102.0))(react-i18next@15.1.1(i18next@23.16.5)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       next-themes:
         specifier: ^0.4.6
-        version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 0.4.6(patch_hash=d5d3f6fccf19abc9f9510e0cb05b04476717842b72830eba0b1ee95507014317)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       nuqs:
         specifier: ^2.4.3
         version: 2.4.3(next@16.2.12(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(sass@1.102.0))(react-router-dom@6.22.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-router@6.22.1(react@19.2.3))(react@19.2.3)
@@ -34547,7 +34548,7 @@ snapshots:
       react: 19.2.3
       react-i18next: 15.1.1(i18next@23.16.5)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
 
-  next-themes@0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next-themes@0.4.6(patch_hash=d5d3f6fccf19abc9f9510e0cb05b04476717842b72830eba0b1ee95507014317)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)

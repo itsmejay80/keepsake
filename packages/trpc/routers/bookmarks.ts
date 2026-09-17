@@ -852,6 +852,7 @@ export const bookmarksAppRouter = router({
         readingProgressOffset: z.number().int().nonnegative(),
         readingProgressAnchor: z.string().max(ANCHOR_TEXT_MAX_LENGTH).nullish(),
         readingProgressPercent: z.number().int().min(0).max(100).nullish(),
+        seen: z.boolean().optional(),
       }),
     )
     .use(ensureBookmarkAccess)
@@ -875,6 +876,10 @@ export const bookmarksAppRouter = router({
           readingProgressOffset: input.readingProgressOffset,
           readingProgressAnchor: input.readingProgressAnchor ?? null,
           readingProgressPercent: input.readingProgressPercent ?? null,
+          seen:
+            input.seen ??
+            (input.readingProgressOffset > 0 ||
+              (input.readingProgressPercent ?? 0) > 0),
         })
         .onConflictDoUpdate({
           target: [userReadingProgress.bookmarkId, userReadingProgress.userId],
@@ -882,9 +887,29 @@ export const bookmarksAppRouter = router({
             readingProgressOffset: input.readingProgressOffset,
             readingProgressAnchor: input.readingProgressAnchor ?? null,
             readingProgressPercent: input.readingProgressPercent ?? null,
+            seen:
+              input.seen ??
+              (input.readingProgressOffset > 0 ||
+                (input.readingProgressPercent ?? 0) > 0),
             modifiedAt: new Date(),
           },
         });
+
+      if (
+        input.readingProgressPercent === 100 &&
+        ctx.bookmark.userId === ctx.user.id
+      ) {
+        const user = await ctx.db.query.users.findFirst({
+          where: eq(users.id, ctx.user.id),
+          columns: { autoArchiveFinished: true },
+        });
+        if (user?.autoArchiveFinished) {
+          await ctx.db
+            .update(bookmarks)
+            .set({ archived: true })
+            .where(eq(bookmarks.id, input.bookmarkId));
+        }
+      }
     }),
   getReadingProgress: bookmarksProcedure
     .input(
@@ -904,6 +929,7 @@ export const bookmarksAppRouter = router({
         readingProgressOffset: progress?.readingProgressOffset ?? null,
         readingProgressAnchor: progress?.readingProgressAnchor ?? null,
         readingProgressPercent: progress?.readingProgressPercent ?? null,
+        seen: progress?.seen ?? false,
       };
     }),
   getBookmark: bookmarksProcedure
@@ -917,9 +943,20 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
-      return (
+      const bookmark = (
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
+      const progress = await ctx.db.query.userReadingProgress.findFirst({
+        where: and(
+          eq(userReadingProgress.bookmarkId, input.bookmarkId),
+          eq(userReadingProgress.userId, ctx.user.id),
+        ),
+      });
+      return {
+        ...bookmark,
+        readingProgressPercent: progress?.readingProgressPercent ?? null,
+        readingProgressSeen: progress?.seen ?? false,
+      };
     }),
   getVideoTranscripts: bookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))

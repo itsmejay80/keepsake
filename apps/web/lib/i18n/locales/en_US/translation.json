@@ -275,7 +275,10 @@
         "save_to_device": "This device",
         "sans": "Sans Serif",
         "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global",
-        "adjust_hint": "Adjust settings above to preview changes"
+        "adjust_hint": "Adjust settings above to preview changes",
+        "auto_archive_finished": "Archive finished articles",
+        "auto_archive_finished_description": "Automatically archive articles when you mark them finished.",
+        "auto_archive_updated": "Reading preference updated"
       }
     },
     "ai": {
@@ -1199,6 +1202,16 @@
     "download": "Download",
     "close": "Close",
     "generating": "Generating..."
+  },
+  "reading": {
+    "unread": "Unread",
+    "reading": "Reading",
+    "finished": "Finished",
+    "continue_reading": "Continue reading",
+    "view_all": "View all",
+    "percent_read": "{{percent}}% read",
+    "reached_end": "You’ve reached the end of this article.",
+    "mark_finished": "Mark finished"
   },
   "keyboard_shortcuts": {
     "title": "Keyboard Shortcuts",

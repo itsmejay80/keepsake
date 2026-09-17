@@ -452,6 +452,15 @@ export class ImportWorker {
 
       const result = await caller.bookmarks.createBookmark(bookmarkRequest);
 
+      if (staged.readingProgressPercent !== null || staged.seen !== null) {
+        await caller.bookmarks.updateReadingProgress({
+          bookmarkId: result.id,
+          readingProgressOffset: 0,
+          readingProgressPercent: staged.readingProgressPercent ?? 0,
+          seen: staged.seen ?? false,
+        });
+      }
+
       // Apply tags via existing mutation (for both new and duplicate bookmarks)
       if (staged.tags && staged.tags.length > 0) {
         await caller.bookmarks.updateTags({

@@ -18,6 +18,8 @@ describe("importBookmarksFromFile", () => {
             tags: ["dev", "github"],
             addDate: 100,
             paths: [["Development", "Projects"]],
+            readingProgressPercent: 42,
+            seen: true,
           },
           {
             title: "My Notes",
@@ -137,6 +139,8 @@ describe("importBookmarksFromFile", () => {
     expect(githubBookmark.title).toBe("GitHub Repository");
     expect(githubBookmark.tags).toEqual(["dev", "github"]);
     expect(githubBookmark.listIds).toEqual(["Imported/Development/Projects"]);
+    expect(githubBookmark.readingProgressPercent).toBe(42);
+    expect(githubBookmark.seen).toBe(true);
 
     // Verify text bookmark was staged correctly
     const textBookmark = stagedBookmarks.find((b) => b.type === "text");

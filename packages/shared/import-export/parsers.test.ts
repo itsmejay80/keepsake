@@ -582,7 +582,7 @@ describe("parsePocketBookmarkFile", () => {
 describe("parseReadwiseReaderBookmarkFile", () => {
   it("parses a Readwise Reader CSV file with multiple items", () => {
     const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
-"Example Site","https://example.com","id1","['tag1','tag2']","2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Example Site","https://example.com","id1","['tag1','tag2']","2026-03-14 23:55:23.291000+00:00","0","new","False"
 "Example Tag less Site","https://notags.com","id2",,"2026-03-14 23:55:23.291000+00:00","100","new","True"
 "Archived Site","https://archived.com","id3",['tag1'],"2026-03-14 23:55:23.291000+00:00","100","archive","True"`;
 
@@ -600,6 +600,8 @@ describe("parseReadwiseReaderBookmarkFile", () => {
       tags: ["tag1", "tag2"],
       addDate: 1773532523.291,
       archived: false,
+      readingProgressPercent: 0,
+      seen: false,
     });
 
     expect(result[1]).toMatchObject({
@@ -611,6 +613,8 @@ describe("parseReadwiseReaderBookmarkFile", () => {
       tags: [],
       addDate: 1773532523.291,
       archived: false,
+      readingProgressPercent: 100,
+      seen: true,
     });
 
     expect(result[2]).toMatchObject({
@@ -622,6 +626,8 @@ describe("parseReadwiseReaderBookmarkFile", () => {
       tags: ["tag1"],
       addDate: 1773532523.291,
       archived: true,
+      readingProgressPercent: 100,
+      seen: true,
     });
   });
   it("filters out feed items", () => {

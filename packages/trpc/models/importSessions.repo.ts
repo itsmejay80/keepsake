@@ -81,6 +81,8 @@ export class ImportSessionsRepo {
       listIds: string[];
       sourceAddedAt?: Date;
       archived?: boolean;
+      readingProgressPercent?: number;
+      seen?: boolean;
       status: "pending";
     }[],
   ): Promise<void> {

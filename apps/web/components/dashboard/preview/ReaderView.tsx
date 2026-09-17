@@ -1,9 +1,10 @@
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { getReaderViewWhiteSpace } from "@/lib/readerViewWhitespace";
 import { useQuery } from "@tanstack/react-query";
-import { FileX } from "lucide-react";
+import { CheckCircle2, FileX } from "lucide-react";
 
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
@@ -65,6 +66,9 @@ export default function ReaderView({
     readingProgressAnchor,
     onSavePosition,
     onScrollPositionChange,
+    isFinished,
+    isUpdatingProgress,
+    markFinished,
   } = useReadingProgress({
     bookmarkId,
   });
@@ -184,6 +188,23 @@ export default function ReaderView({
             })
           }
         />
+        {!isFinished && (
+          <div className="my-12 flex flex-col items-center gap-3 border-t pt-8 print:hidden">
+            <p className="text-sm text-muted-foreground">
+              {t("reading.reached_end", {
+                defaultValue: "You’ve reached the end of this article.",
+              })}
+            </p>
+            <Button
+              onClick={markFinished}
+              disabled={isUpdatingProgress}
+              className="min-h-11 px-5"
+            >
+              <CheckCircle2 className="mr-2 size-4" />
+              {t("reading.mark_finished", { defaultValue: "Mark finished" })}
+            </Button>
+          </div>
+        )}
       </ScrollProgressTracker>
     );
   }

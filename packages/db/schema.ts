@@ -97,6 +97,9 @@ export const users = sqliteTable("user", {
   readerFontFamily: text("readerFontFamily", {
     enum: ["serif", "sans", "mono"],
   }),
+  autoArchiveFinished: integer("autoArchiveFinished", { mode: "boolean" })
+    .notNull()
+    .default(false),
 
   // AI Settings (nullable = opt-in, null means use server default)
   autoTaggingEnabled: integer("autoTaggingEnabled", { mode: "boolean" }),
@@ -454,6 +457,7 @@ export const userReadingProgress = sqliteTable(
     readingProgressOffset: integer("readingProgressOffset").notNull(),
     readingProgressAnchor: text("readingProgressAnchor"),
     readingProgressPercent: integer("readingProgressPercent"),
+    seen: integer("seen", { mode: "boolean" }).notNull().default(false),
     modifiedAt: modifiedAtField(),
   },
   (tb) => [
@@ -1047,6 +1051,8 @@ export const importStagingBookmarks = sqliteTable(
     listIds: text("listIds", { mode: "json" }).$type<string[]>(),
     sourceAddedAt: integer("sourceAddedAt", { mode: "timestamp" }),
     archived: integer("archived", { mode: "boolean" }),
+    readingProgressPercent: integer("readingProgressPercent"),
+    seen: integer("seen", { mode: "boolean" }),
 
     // Processing state
     status: text("status", {

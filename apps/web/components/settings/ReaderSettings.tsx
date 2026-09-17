@@ -5,6 +5,7 @@ import { toast } from "@/components/ui/sonner";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
+import { useUserSettings } from "@/lib/userSettings";
 import { AlertTriangle, ChevronDown, Laptop, RotateCcw } from "lucide-react";
 
 import {
@@ -14,6 +15,7 @@ import {
   READER_FONT_FAMILIES,
   READER_SETTING_CONSTRAINTS,
 } from "@karakeep/shared/types/readers";
+import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 
 import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
@@ -38,10 +40,26 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Slider } from "../ui/slider";
+import { Switch } from "../ui/switch";
 
 export default function ReaderSettings() {
   const { t } = useTranslation();
   const clientConfig = useClientConfig();
+  const userSettings = useUserSettings();
+  const { mutate: updateUserSettings, isPending: isUpdatingUserSettings } =
+    useUpdateUserSettings({
+      onSuccess: () =>
+        toast({
+          description: t("settings.info.reader_settings.auto_archive_updated", {
+            defaultValue: "Reading preference updated",
+          }),
+        }),
+      onError: () =>
+        toast({
+          variant: "destructive",
+          description: t("common.something_went_wrong"),
+        }),
+    });
   const {
     settings,
     serverSettings,
@@ -261,6 +279,38 @@ export default function ReaderSettings() {
                 max={READER_SETTING_CONSTRAINTS.lineHeight.max}
                 min={READER_SETTING_CONSTRAINTS.lineHeight.min}
                 step={READER_SETTING_CONSTRAINTS.lineHeight.step}
+              />
+            </div>
+
+            {/* Reading workflow */}
+            <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
+              <div className="space-y-1">
+                <Label htmlFor="auto-archive-finished">
+                  {t("settings.info.reader_settings.auto_archive_finished", {
+                    defaultValue: "Archive finished articles",
+                  })}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {t(
+                    "settings.info.reader_settings.auto_archive_finished_description",
+                    {
+                      defaultValue:
+                        "Automatically archive articles when you mark them finished.",
+                    },
+                  )}
+                </p>
+              </div>
+              <Switch
+                id="auto-archive-finished"
+                checked={userSettings.autoArchiveFinished}
+                disabled={!!clientConfig.demoMode || isUpdatingUserSettings}
+                onCheckedChange={(autoArchiveFinished) =>
+                  updateUserSettings({ autoArchiveFinished })
+                }
+                aria-label={t(
+                  "settings.info.reader_settings.auto_archive_finished",
+                  { defaultValue: "Archive finished articles" },
+                )}
               />
             </div>
 

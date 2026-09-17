@@ -30,6 +30,8 @@ export interface ParsedBookmark {
   addDate?: number;
   notes?: string;
   archived?: boolean;
+  readingProgressPercent?: number;
+  seen?: boolean;
   paths: string[][];
   // Optional list IDs from the source file (used with top-level `lists`).
   listExternalIds?: string[];
@@ -571,6 +573,11 @@ function parseReadwiseReaderBookmarkFile(
       tags,
       paths: [], // TODO
       archived: record.Location === "archive",
+      readingProgressPercent: Math.max(
+        0,
+        Math.min(100, Math.round(Number(record["Reading progress"]) || 0)),
+      ),
+      seen: record.Seen === "True",
     };
   });
 }
@@ -647,6 +654,11 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
         if (bookmark.archived === true) {
           existing.archived = true;
         }
+        existing.readingProgressPercent = Math.max(
+          existing.readingProgressPercent ?? 0,
+          bookmark.readingProgressPercent ?? 0,
+        );
+        existing.seen = existing.seen === true || bookmark.seen === true;
         // Title: keep existing one for simplicity
       } else {
         deduplicatedBookmarksMap.set(url, bookmark);

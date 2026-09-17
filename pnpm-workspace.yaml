@@ -33,6 +33,9 @@ patchedDependencies:
   # Disables React 19.2's dev "component performance track" prop serialization,
   # which crashes when a changed prop is a tRPC proxy (RN 0.85 + new arch).
   react-native@0.85.3: patches/react-native@0.85.3.patch
+  # Next.js 16.2 warns when next-themes renders its SSR bootstrap script again on the client.
+  # Keep the script in SSR output, but suppress the inert client copy (upstream PR #386).
+  next-themes@0.4.6: patches/next-themes@0.4.6.patch
 
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
