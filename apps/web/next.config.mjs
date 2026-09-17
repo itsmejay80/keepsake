@@ -62,6 +62,12 @@ const nextConfig = {
     "100.82.66.23",
     ...(process.env.ALLOWED_DEV_ORIGINS?.split(",").filter(Boolean) ?? []),
   ],
+  serverActions: {
+    allowedOrigins: [
+      "100.82.66.23",
+      ...(process.env.ALLOWED_DEV_ORIGINS?.split(",").filter(Boolean) ?? []),
+    ],
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

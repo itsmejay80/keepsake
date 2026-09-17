@@ -151,6 +151,10 @@ export default function KeyboardShortcutsDialog({
           keys: [`${searchModifier} K`],
           description: t("keyboard_shortcuts.focus_search_alt"),
         },
+        {
+          keys: ["["],
+          description: t("keyboard_shortcuts.toggle_sidebar"),
+        },
       ],
     },
   ];

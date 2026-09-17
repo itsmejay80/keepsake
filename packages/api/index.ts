@@ -69,7 +69,19 @@ if (serverConfig.tracing.enabled) {
 app
   .use(
     cors({
-      origin: "*",
+      origin: (origin) => {
+        if (!origin) {
+          return "*";
+        }
+        try {
+          if (new URL(origin).hostname === "100.82.66.23") {
+            return origin;
+          }
+        } catch {
+          return "*";
+        }
+        return "*";
+      },
       allowHeaders: ["Authorization", "Content-Type"],
       credentials: true,
     }),

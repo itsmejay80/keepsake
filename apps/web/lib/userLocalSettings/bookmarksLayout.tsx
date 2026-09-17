@@ -18,9 +18,10 @@ export const UserLocalSettingsCtx = createContext<
   showTags: true,
   showTitle: true,
   imageFit: "cover",
+  sidebarCollapsed: false,
 });
 
-function useUserLocalSettings() {
+export function useUserLocalSettings() {
   return useContext(UserLocalSettingsCtx);
 }
 

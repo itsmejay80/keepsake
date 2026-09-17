@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebarCollapse } from "@/components/shared/sidebar/SidebarCollapse";
 import SidebarItem from "@/components/shared/sidebar/SidebarItem";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonWithTooltip } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -204,6 +204,7 @@ export default function AllLists({
   }, [lists.data]);
 
   const [sharedListsOpen, setSharedListsOpen] = useState(isViewingSharedList);
+  const { collapsed } = useSidebarCollapse();
 
   // Auto-open shared lists if viewing one
   useEffect(() => {
@@ -212,88 +213,113 @@ export default function AllLists({
     }
   }, [isViewingSharedList, sharedListsOpen]);
 
+  const createListLabel = t("lists.create_list", {
+    defaultValue: "Create list",
+  });
+
   return (
-    <ul className="sidebar-scrollbar max-h-full gap-y-2 overflow-auto text-sm">
-      <li className="flex min-h-11 items-center justify-between px-2 pb-1">
-        <p className="text-xs font-semibold text-muted-foreground">Lists</p>
+    <ul className="sidebar-scrollbar max-h-full min-h-0 flex-1 gap-y-2 overflow-auto text-sm">
+      <li className="flex overflow-hidden">
         <EditListModal>
-          <Link
-            href="#"
-            aria-label={t("lists.create_list", { defaultValue: "Create list" })}
-            className="flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <ButtonWithTooltip
+            type="button"
+            tooltip={createListLabel}
+            variant="ghost"
+            size="none"
+            className="flex min-h-10 w-full min-w-0 items-center justify-start gap-x-2.5 rounded-xl px-2.5 py-1.5 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
           >
-            <Plus className="size-4" strokeWidth={1.5} />
-          </Link>
+            <Plus className="size-[18px] shrink-0" strokeWidth={1.5} />
+            <span
+              className={cn(
+                "sidebar-fade min-w-0 truncate whitespace-nowrap text-xs font-semibold",
+                collapsed
+                  ? "pointer-events-none w-0 opacity-0"
+                  : "opacity-100",
+              )}
+            >
+              Lists
+            </span>
+          </ButtonWithTooltip>
         </EditListModal>
       </li>
       <SidebarItem
-        collapseButton={<span className="size-4" />}
         logo={<ClipboardList className="size-[18px]" strokeWidth={1.5} />}
         name={t("lists.all_lists")}
         path={`/dashboard/lists`}
-        linkClassName="py-0.5 px-1"
         right={<InvitationNotificationBadge />}
       />
       <SidebarItem
-        collapseButton={<span className="size-4" />}
         logo={<Star className="size-[18px]" strokeWidth={1.5} />}
         name={t("lists.favourites")}
         path={`/dashboard/favourites`}
-        linkClassName="py-0.5 px-1"
       />
 
-      {/* Owned Lists */}
-      <CollapsibleBookmarkLists
-        listsData={lists}
-        filter={(node) => node.item.userRole === "owner"}
-        isOpenFunc={isNodeOpen}
-        render={({ node, level, open, numBookmarks }) => (
-          <DroppableListSidebarItem
-            node={node}
-            level={level}
-            open={open}
-            numBookmarks={numBookmarks}
-            selectedListId={selectedListId}
-            setSelectedListId={setSelectedListId}
-          />
+      <div
+        className={cn(
+          "sidebar-fold grid",
+          collapsed
+            ? "pointer-events-none grid-rows-[0fr] opacity-0"
+            : "grid-rows-[1fr] opacity-100",
         )}
-      />
-
-      {/* Shared Lists */}
-      {hasSharedLists && (
-        <Collapsible open={sharedListsOpen} onOpenChange={setSharedListsOpen}>
-          <SidebarItem
-            collapseButton={
-              <CollapsibleTriggerChevron
-                className="size-4"
-                open={sharedListsOpen}
+      >
+        <div className="overflow-hidden" aria-hidden={collapsed}>
+          {/* Owned Lists */}
+          <CollapsibleBookmarkLists
+            listsData={lists}
+            filter={(node) => node.item.userRole === "owner"}
+            isOpenFunc={isNodeOpen}
+            render={({ node, level, open, numBookmarks }) => (
+              <DroppableListSidebarItem
+                node={node}
+                level={level}
+                open={open}
+                numBookmarks={numBookmarks}
+                selectedListId={selectedListId}
+                setSelectedListId={setSelectedListId}
               />
-            }
-            logo={<Users className="size-[18px]" strokeWidth={1.5} />}
-            name={t("lists.shared_lists")}
-            path="#"
-            linkClassName="py-0.5 px-1"
+            )}
           />
-          <CollapsibleContent>
-            <CollapsibleBookmarkLists
-              listsData={lists}
-              filter={(node) => node.item.userRole !== "owner"}
-              isOpenFunc={isNodeOpen}
-              indentOffset={1}
-              render={({ node, level, open, numBookmarks }) => (
-                <DroppableListSidebarItem
-                  node={node}
-                  level={level}
-                  open={open}
-                  numBookmarks={numBookmarks}
-                  selectedListId={selectedListId}
-                  setSelectedListId={setSelectedListId}
+
+          {/* Shared Lists */}
+          {hasSharedLists && (
+            <Collapsible
+              open={sharedListsOpen}
+              onOpenChange={setSharedListsOpen}
+            >
+              <SidebarItem
+                collapseButton={
+                  <CollapsibleTriggerChevron
+                    className="size-4"
+                    open={sharedListsOpen}
+                  />
+                }
+                logo={<Users className="size-[18px]" strokeWidth={1.5} />}
+                name={t("lists.shared_lists")}
+                path="#"
+                linkClassName="py-0.5 px-1"
+              />
+              <CollapsibleContent>
+                <CollapsibleBookmarkLists
+                  listsData={lists}
+                  filter={(node) => node.item.userRole !== "owner"}
+                  isOpenFunc={isNodeOpen}
+                  indentOffset={1}
+                  render={({ node, level, open, numBookmarks }) => (
+                    <DroppableListSidebarItem
+                      node={node}
+                      level={level}
+                      open={open}
+                      numBookmarks={numBookmarks}
+                      selectedListId={selectedListId}
+                      setSelectedListId={setSelectedListId}
+                    />
+                  )}
                 />
-              )}
-            />
-          </CollapsibleContent>
-        </Collapsible>
-      )}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+        </div>
+      </div>
     </ul>
   );
 }

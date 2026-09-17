@@ -4,7 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
-export function InvitationNotificationBadge() {
+export function InvitationNotificationBadge({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const api = useTRPC();
   const { data: pendingInvitations } = useQuery(
     api.lists.getPendingInvitations.queryOptions(undefined, {
@@ -15,6 +19,15 @@ export function InvitationNotificationBadge() {
 
   if (pendingInvitationsCount === 0) {
     return null;
+  }
+
+  if (compact) {
+    return (
+      <span
+        className="size-2 rounded-full bg-blue-500"
+        aria-label={`${pendingInvitationsCount}`}
+      />
+    );
   }
 
   return (

@@ -1,10 +1,8 @@
 import { useTranslation } from "@/lib/i18n/server";
 import { TFunction } from "i18next";
 
-import serverConfig from "@karakeep/shared/config";
-
+import SidebarFrame from "./SidebarFrame";
 import SidebarItem from "./SidebarItem";
-import SidebarVersion from "./SidebarVersion";
 import { TSidebarItem } from "./TSidebarItem";
 
 export default async function Sidebar({
@@ -18,10 +16,7 @@ export default async function Sidebar({
   const { t } = await useTranslation();
 
   return (
-    <aside
-      className="flex h-[calc(100vh-60px)] w-60 flex-col gap-4 border-r border-border/70 bg-background p-3 xl:w-72"
-      aria-label={t("common.navigation", { defaultValue: "Main navigation" })}
-    >
+    <SidebarFrame>
       <div>
         <ul className="space-y-1 text-sm">
           {items(t).map((item) => (
@@ -34,11 +29,11 @@ export default async function Sidebar({
           ))}
         </ul>
       </div>
-      {extraSections}
-      <SidebarVersion
-        serverVersion={serverConfig.serverVersion}
-        changeLogVersion={serverConfig.changelogVersion}
-      />
-    </aside>
+      {extraSections ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-3">
+          {extraSections}
+        </div>
+      ) : null}
+    </SidebarFrame>
   );
 }

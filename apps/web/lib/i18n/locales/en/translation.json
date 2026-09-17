@@ -43,7 +43,10 @@
     },
     "quota": "Quota",
     "bookmarks": "Bookmarks",
-    "storage": "Storage"
+    "storage": "Storage",
+    "navigation": "Main navigation",
+    "collapse_sidebar": "Collapse sidebar",
+    "expand_sidebar": "Expand sidebar"
   },
   "layouts": {
     "masonry": "Masonry",
@@ -1201,6 +1204,7 @@
     "select_all": "Select all",
     "deselect_all": "Deselect all",
     "show_help": "Show keyboard shortcuts",
-    "focus_search_alt": "Focus search"
+    "focus_search_alt": "Focus search",
+    "toggle_sidebar": "Collapse / expand sidebar"
   }
 }

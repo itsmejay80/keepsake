@@ -17,6 +17,8 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { z } from "zod";
 
+import { useSidebarCollapse } from "./SidebarCollapse";
+
 const GITHUB_OWNER_REPO = "karakeep-app/karakeep";
 const GITHUB_REPO_URL = `https://github.com/${GITHUB_OWNER_REPO}`;
 const GITHUB_RELEASE_URL = `${GITHUB_REPO_URL}/releases/tag/`;
@@ -58,6 +60,7 @@ export default function SidebarVersion({
 }: SidebarVersionProps) {
   const { disableNewReleaseCheck } = useClientConfig();
   const { t } = useTranslation();
+  const { collapsed } = useSidebarCollapse();
 
   const effectiveChangelogVersion = changeLogVersion ?? serverVersion;
   const stableRelease = isStableRelease(effectiveChangelogVersion);
@@ -179,30 +182,41 @@ export default function SidebarVersion({
   );
 
   if (!stableRelease || disableNewReleaseCheck) {
+    if (collapsed) {
+      return null;
+    }
     return (
       <Link
         href={releasePageUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto flex items-center border-t pt-2 text-sm text-gray-400 hover:underline"
+        className="flex items-center pt-2 text-sm text-gray-400 hover:underline"
       >
         {versionLabel}
       </Link>
     );
   }
 
+  if (collapsed && !shouldNotify) {
+    return null;
+  }
+
   return (
     <>
-      <div className="mt-auto border-t pt-2">
+      <div className="pt-2">
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label={
             shouldNotify ? t("version.new_release_available") : undefined
           }
-          className="flex w-full items-center justify-between text-left text-sm text-gray-400 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className={
+            collapsed
+              ? "flex size-11 items-center justify-center text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              : "flex w-full items-center justify-between text-left text-sm text-gray-400 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          }
         >
-          <span aria-hidden={shouldNotify}>{versionLabel}</span>
+          {!collapsed && <span aria-hidden={shouldNotify}>{versionLabel}</span>}
           {shouldNotify && (
             <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
               <span className="sr-only">

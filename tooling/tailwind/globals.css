@@ -136,4 +136,37 @@
   .sidebar-scrollbar:focus-within {
     scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
   }
+
+  .sidebar-width {
+    transition-property: width;
+    transition-duration: 240ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .sidebar-icon-swap {
+    transition-property: opacity, filter, scale;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .sidebar-fade {
+    transition-property: opacity, max-width, width;
+    transition-duration: 240ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .sidebar-fold {
+    transition-property: grid-template-rows, opacity;
+    transition-duration: 240ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-width,
+    .sidebar-icon-swap,
+    .sidebar-fade,
+    .sidebar-fold {
+      transition: none;
+    }
+  }
 }
