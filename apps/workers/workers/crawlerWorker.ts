@@ -308,7 +308,11 @@ async function enqueuePostCrawlJobs(
   // Update the search index
   await triggerSearchReindex(bookmarkId, enqueueOpts);
 
-  if (shouldProcessVideoUrl(url, serverConfig.crawler.downloadVideo)) {
+  if (
+    shouldProcessVideoUrl(url, serverConfig.crawler.downloadVideo) &&
+    (serverConfig.crawler.downloadVideo ||
+      serverConfig.crawler.videoTranscripts)
+  ) {
     // YouTube transcripts are extracted even when full video storage is off.
     await VideoWorkerQueue.enqueue(
       {

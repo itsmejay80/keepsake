@@ -232,9 +232,7 @@ export default function AllLists({
             <span
               className={cn(
                 "sidebar-fade min-w-0 truncate whitespace-nowrap text-xs font-semibold",
-                collapsed
-                  ? "pointer-events-none w-0 opacity-0"
-                  : "opacity-100",
+                collapsed ? "pointer-events-none w-0 opacity-0" : "opacity-100",
               )}
             >
               Lists

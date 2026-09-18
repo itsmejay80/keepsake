@@ -142,6 +142,7 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
+  CRAWLER_VIDEO_TRANSCRIPTS: stringBool("false"),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_ENABLE_AUTOCONSENT: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
@@ -411,6 +412,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
+      videoTranscripts: val.CRAWLER_VIDEO_TRANSCRIPTS,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       enableAutoconsent: val.CRAWLER_ENABLE_AUTOCONSENT,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
@@ -620,6 +622,9 @@ export const clientConfig = {
       serverConfig.experimentalFeatures.semanticSearch &&
       serverConfig.embedding.enableAutoIndexing &&
       serverConfig.embedding.isConfigured,
+  },
+  crawler: {
+    videoTranscripts: serverConfig.crawler.videoTranscripts,
   },
   stripe: {
     isConfigured: serverConfig.stripe.isConfigured,

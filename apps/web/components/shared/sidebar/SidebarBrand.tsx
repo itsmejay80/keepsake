@@ -26,9 +26,7 @@ export default function SidebarBrand() {
         <span
           className={cn(
             "sidebar-fade flex items-center",
-            collapsed
-              ? "pointer-events-none opacity-0"
-              : "opacity-100",
+            collapsed ? "pointer-events-none opacity-0" : "opacity-100",
           )}
         >
           <KarakeepLogo height={28} />

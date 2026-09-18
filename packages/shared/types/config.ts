@@ -31,6 +31,9 @@ export const zClientConfigSchema = z.object({
   search: z.object({
     semanticSearchEnabled: z.boolean(),
   }),
+  crawler: z.object({
+    videoTranscripts: z.boolean(),
+  }),
   stripe: z.object({
     isConfigured: z.boolean(),
   }),

@@ -173,7 +173,9 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     );
     return;
   }
-  const transcriptLanguages = selectTranscriptLanguages(info);
+  const transcriptLanguages = serverConfig.crawler.videoTranscripts
+    ? selectTranscriptLanguages(info)
+    : [];
   const ytDlpArguments = prepareYtDlpArguments(
     normalizedUrl,
     proxy?.proxy.toString(),
@@ -222,19 +224,25 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   }
 
   if (transcripts.length > 0) {
-    replaceTranscripts(bookmarkId, transcripts);
-    const enqueueOpts = { priority: job.priority, groupId: userId };
-    await Promise.all([
-      triggerSearchReindex(bookmarkId, enqueueOpts),
-      EmbeddingsQueue.enqueue(
-        { bookmarkId, type: "embed", runTaggingOnComplete: false },
-        enqueueOpts,
-      ),
-      OpenAIQueue.enqueue({ bookmarkId, type: "summarize" }, enqueueOpts),
-    ]);
-    logger.info(
-      `[VideoCrawler][${jobId}] Stored ${transcripts.length} transcript language(s) for "${normalizedUrl}"`,
-    );
+    if (!serverConfig.crawler.videoTranscripts) {
+      logger.info(
+        `[VideoCrawler][${jobId}] Skipping transcript storage because it is disabled in the config.`,
+      );
+    } else {
+      replaceTranscripts(bookmarkId, transcripts);
+      const enqueueOpts = { priority: job.priority, groupId: userId };
+      await Promise.all([
+        triggerSearchReindex(bookmarkId, enqueueOpts),
+        EmbeddingsQueue.enqueue(
+          { bookmarkId, type: "embed", runTaggingOnComplete: false },
+          enqueueOpts,
+        ),
+        OpenAIQueue.enqueue({ bookmarkId, type: "summarize" }, enqueueOpts),
+      ]);
+      logger.info(
+        `[VideoCrawler][${jobId}] Stored ${transcripts.length} transcript language(s) for "${normalizedUrl}"`,
+      );
+    }
   }
 
   if (!serverConfig.crawler.downloadVideo) {

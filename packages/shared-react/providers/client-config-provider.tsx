@@ -23,6 +23,9 @@ export const DEFAULT_CLIENT_CONFIG: ZClientConfig = {
   search: {
     semanticSearchEnabled: false,
   },
+  crawler: {
+    videoTranscripts: false,
+  },
   stripe: {
     isConfigured: false,
   },
@@ -60,6 +63,10 @@ export function ClientConfigProvider({
       search: {
         ...DEFAULT_CLIENT_CONFIG.search,
         ...value?.search,
+      },
+      crawler: {
+        ...DEFAULT_CLIENT_CONFIG.crawler,
+        ...value?.crawler,
       },
       stripe: {
         ...DEFAULT_CLIENT_CONFIG.stripe,
