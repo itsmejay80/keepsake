@@ -299,17 +299,19 @@ export class User {
       const token = randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-      await ctx.db.transaction(async (tx) => {
+      await ctx.db.transaction((tx) => {
         // Invalidate any existing reset tokens for this user
-        await tx
-          .delete(passwordResetTokens)
-          .where(eq(passwordResetTokens.userId, user.id));
+        tx.delete(passwordResetTokens)
+          .where(eq(passwordResetTokens.userId, user.id))
+          .run();
 
-        await tx.insert(passwordResetTokens).values({
-          userId: user.id,
-          token,
-          expires,
-        });
+        tx.insert(passwordResetTokens)
+          .values({
+            userId: user.id,
+            token,
+            expires,
+          })
+          .run();
       });
 
       // Deliberately not awaited. Delivery latency is only incurred for real
@@ -629,18 +631,18 @@ export class User {
       return;
     }
 
-    await this.ctx.db.transaction(async (tx) => {
-      await tx
-        .update(users)
+    await this.ctx.db.transaction((tx) => {
+      tx.update(users)
         .set({ image: assetId })
-        .where(eq(users.id, this.user.id));
+        .where(eq(users.id, this.user.id))
+        .run();
 
       if (!previousImage || previousImage === assetId) {
         return;
       }
 
       if (previousAsset && !previousAsset.bookmarkId) {
-        await tx.delete(assets).where(eq(assets.id, previousAsset.id));
+        tx.delete(assets).where(eq(assets.id, previousAsset.id)).run();
       }
     });
 
