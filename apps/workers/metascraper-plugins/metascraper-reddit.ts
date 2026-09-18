@@ -115,6 +115,76 @@ const buildJsonUrl = (url: string): string => {
   return urlObj.toString();
 };
 
+/**
+ * Matches Reddit "share" links of the form /r/{subreddit}/s/{shareId}.
+ * These are short links that redirect to the canonical post URL.
+ */
+const redditSharePathPattern = /^\/r\/[^/]+\/s\/[^/]+$/;
+
+const isRedditShareUrl = (url: string): boolean => {
+  try {
+    return redditSharePathPattern.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Reddit's `.json` endpoints do NOT work on share links: requesting
+ * `https://www.reddit.com/r/foo/s/abc.json` redirects to the subreddit's
+ * HTML feed instead of the post's JSON. So before building the JSON URL we
+ * must resolve the share link to the canonical post URL.
+ */
+const resolveRedditShareUrl = async (url: string): Promise<string> => {
+  const urlObj = new URL(url);
+
+  if (isRedditShareUrl(url)) {
+    let response;
+    try {
+      // fetchWithProxy follows redirects and node-fetch exposes the final
+      // URL on the response, so a single request resolves the share link
+      // to the canonical post URL.
+      response = await fetchWithProxy(url, {
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      logger.warn(
+        `[MetascraperReddit] Failed to resolve Reddit share link ${url}`,
+        error,
+      );
+      return url;
+    }
+
+    const finalUrl = response.url;
+    if (finalUrl && !isRedditShareUrl(finalUrl)) {
+      try {
+        const resolved = new URL(finalUrl);
+        // Strip share/tracking parameters so we get a clean canonical URL
+        // (this also keeps the cache from blowing up on new share ids).
+        resolved.search = "";
+        resolved.hash = "";
+        return resolved.toString();
+      } catch (error) {
+        logger.warn(
+          `[MetascraperReddit] Invalid resolved URL for Reddit share link ${url}: ${finalUrl}`,
+          error,
+        );
+        return url;
+      }
+    }
+
+    logger.warn(
+      `[MetascraperReddit] Could not resolve Reddit share link ${url} (final URL: ${finalUrl ?? "none"}); using it as-is.`,
+    );
+    return url;
+  }
+
+  // For regular post URLs, strip share/tracking parameters too.
+  urlObj.search = "";
+  urlObj.hash = "";
+  return urlObj.toString();
+};
+
 const extractImageFromMediaMetadata = (
   media_metadata?: RedditPostData["media_metadata"],
 ): string | undefined => {
@@ -210,6 +280,25 @@ const fallbackDomTitle = ({ htmlDom }: { htmlDom: CheerioAPI }) => {
   return postTitle ? postTitle.trim() : undefined;
 };
 
+/**
+ * Fallback readable content extracted from the rendered page DOM (used when
+ * the Reddit JSON API is unavailable/blocked, e.g. rate-limited or 403).
+ * Shreddit renders the post selftext inside a `.md` div within the
+ * `shreddit-post` element (under the `text-body` slot).
+ */
+const fallbackDomReadableContent = ({ htmlDom }: { htmlDom: CheerioAPI }) => {
+  const selfText =
+    htmlDom('shreddit-post [slot="text-body"] .md').first().html() ??
+    htmlDom("shreddit-post .md").first().html();
+  if (selfText?.trim()) {
+    return selfText;
+  }
+
+  // Link posts have no selftext; the title is the most useful content.
+  const postTitle = fallbackDomTitle({ htmlDom });
+  return postTitle || undefined;
+};
+
 const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
   const cached = redditJsonCache.get(url);
   const now = Date.now();
@@ -223,7 +312,10 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
   const promise = (async () => {
     let jsonUrl: string;
     try {
-      jsonUrl = buildJsonUrl(url);
+      // Resolve /r/foo/s/abc share links first: their `.json` endpoints
+      // redirect to the subreddit HTML feed, not the post JSON.
+      const canonicalUrl = await resolveRedditShareUrl(url);
+      jsonUrl = buildJsonUrl(canonicalUrl);
     } catch (error) {
       logger.warn(
         "[MetascraperReddit] Failed to construct Reddit JSON URL",
@@ -357,12 +449,20 @@ const metascraperReddit = () => {
 
       return fallbackDomTitle({ htmlDom });
     }) as unknown as RulesOptions,
-    author: (async ({ url }: { url: string }) => {
+    author: (async ({ url, htmlDom }: { url: string; htmlDom: CheerioAPI }) => {
       const result = await fetchRedditPostData(url);
       if (result.post) {
-        return extractAuthorFromPost(result.post);
+        const redditAuthor = extractAuthorFromPost(result.post);
+        if (redditAuthor) {
+          return redditAuthor;
+        }
       }
-      return undefined;
+
+      // Fallback to the rendered DOM when the JSON API is unavailable.
+      return (
+        htmlDom("shreddit-post[author-name]").first().attr("author-name") ??
+        undefined
+      );
     }) as unknown as RulesOptions,
     datePublished: (async ({ url }: { url: string }) => {
       const result = await fetchRedditPostData(url);
@@ -371,12 +471,24 @@ const metascraperReddit = () => {
       }
       return undefined;
     }) as unknown as RulesOptions,
-    publisher: (async ({ url }: { url: string }) => {
+    publisher: (async ({
+      url,
+      htmlDom,
+    }: {
+      url: string;
+      htmlDom: CheerioAPI;
+    }) => {
       const result = await fetchRedditPostData(url);
       if (result.post) {
         return extractPublisherFromPost(result.post);
       }
-      return undefined;
+
+      // Fallback to the rendered DOM when the JSON API is unavailable.
+      const subreddit =
+        htmlDom("shreddit-post[subreddit-name]")
+          .first()
+          .attr("subreddit-name") ?? undefined;
+      return subreddit ? `r/${subreddit}` : "Reddit";
     }) as unknown as RulesOptions,
     logo: (async ({ url }: { url: string }) => {
       const result = await fetchRedditPostData(url);
@@ -385,14 +497,23 @@ const metascraperReddit = () => {
       }
       return undefined;
     }) as unknown as RulesOptions,
-    readableContentHtml: (async ({ url }: { url: string }) => {
+    readableContentHtml: (async ({
+      url,
+      htmlDom,
+    }: {
+      url: string;
+      htmlDom: CheerioAPI;
+    }) => {
       const result = await fetchRedditPostData(url);
       if (result.post) {
         const decoded = decodeHtmlEntities(result.post.selftext_html ?? "");
         // The post has no content, return the title
         return (decoded || result.post.title) ?? null;
       }
-      return undefined;
+
+      // JSON API unavailable (blocked/403/rate-limited) — fall back to the
+      // browser-rendered DOM so the saved post still has its text.
+      return fallbackDomReadableContent({ htmlDom });
     }) as unknown as RulesOptions,
   };
 
