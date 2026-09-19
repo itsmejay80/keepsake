@@ -123,6 +123,34 @@
     background: hsl(var(--muted-foreground) / 0.15);
   }
 
+  /* Sleek thin scrollbar for content panes */
+  .thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 150ms ease;
+  }
+  .thin-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.25);
+    background-clip: padding-box;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+    background-clip: padding-box;
+  }
+
   .sidebar-scrollbar:hover::-webkit-scrollbar-thumb:hover,
   .sidebar-scrollbar:focus-within::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.25);

@@ -99,7 +99,7 @@ export default function ReaderSettingsPopover({
             <Button variant={variant} size="icon" className="relative">
               <Settings className="h-4 w-4" />
               {(hasSessionChanges || hasLocalOverrides) && (
-                <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" />
+                <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
               )}
             </Button>
           </PopoverTrigger>
