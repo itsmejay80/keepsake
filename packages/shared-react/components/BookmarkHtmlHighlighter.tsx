@@ -41,6 +41,7 @@ interface HighlightFormProps {
   onSave: (color: ZHighlightColor, note: string | null) => void;
   onDelete?: () => void;
   isMobile: boolean;
+  autoFocusNote?: boolean;
 }
 
 const HighlightForm: React.FC<HighlightFormProps> = ({
@@ -50,17 +51,76 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
   onSave,
   onDelete,
   isMobile,
+  autoFocusNote = false,
 }) => {
   const [selectedColor, setSelectedColor] = useState<ZHighlightColor>(
     selectedHighlight?.color || "yellow",
   );
   const [noteText, setNoteText] = useState(selectedHighlight?.note || "");
+  const noteRef = useRef<HTMLTextAreaElement>(null);
 
   // Update state when selectedHighlight changes
   useEffect(() => {
     setSelectedColor(selectedHighlight?.color || "yellow");
     setNoteText(selectedHighlight?.note || "");
   }, [selectedHighlight]);
+
+  // Readwise-style: pressing "n" focuses the note field, pressing "h"
+  // (or Enter/Cmd+Enter) saves immediately. Don't steal focus by default
+  // so single-key shortcuts keep working.
+  useEffect(() => {
+    if (position === null || !autoFocusNote) {
+      return;
+    }
+    noteRef.current?.focus();
+  }, [position, autoFocusNote, selectedHighlight]);
+
+  useEffect(() => {
+    if (position === null) {
+      return;
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const isTyping =
+        tag === "textarea" ||
+        tag === "input" ||
+        target?.isContentEditable === true;
+      const key = e.key.toLowerCase();
+
+      if (isTyping) {
+        // Cmd/Ctrl+Enter saves from the note field; Escape closes.
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault();
+          onSave(selectedColor, noteText || null);
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+        return;
+      }
+
+      if (key === "n") {
+        e.preventDefault();
+        noteRef.current?.focus();
+      } else if (key === "h" || e.key === "Enter") {
+        e.preventDefault();
+        onSave(selectedColor, noteText || null);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      } else if (["1", "2", "3", "4"].includes(e.key)) {
+        const idx = Number(e.key) - 1;
+        const color = SUPPORTED_HIGHLIGHT_COLORS[idx];
+        if (color) {
+          e.preventDefault();
+          setSelectedColor(color);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [position, selectedColor, noteText, onSave, onClose]);
 
   const handleSave = () => {
     onSave(selectedColor, noteText || null);
@@ -111,9 +171,16 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
           </div>
         </div>
         <div>
-          <label className="mb-2 block text-sm font-medium">Note</label>
+          <label className="mb-2 block text-sm font-medium">
+            Note{" "}
+            <span className="font-normal text-muted-foreground">
+              (press{" "}
+              <kbd className="rounded border bg-muted px-1 text-xs">n</kbd>)
+            </span>
+          </label>
           <Textarea
-            placeholder="Add a note (optional)..."
+            ref={noteRef}
+            placeholder="Add a note (optional)... Press ⌘/Ctrl+Enter to save"
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
             className="min-h-[80px] text-sm"
@@ -195,6 +262,7 @@ const BookmarkHTMLHighlighter = forwardRef<
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(
     null,
   );
+  const [autoFocusNote, setAutoFocusNote] = useState(false);
   const isMobile = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -353,8 +421,83 @@ const BookmarkHTMLHighlighter = forwardRef<
     setMenuPosition(null);
     setPendingHighlight(null);
     setSelectedHighlight(null);
+    setAutoFocusNote(false);
     window.getSelection()?.removeAllRanges();
   };
+
+  // Readwise-style quick actions: with text selected (form closed), "h"
+  // saves a highlight immediately and "n" opens the form with note focused.
+  useEffect(() => {
+    if (readOnly || menuPosition !== null) {
+      return;
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (
+        tag === "textarea" ||
+        tag === "input" ||
+        tag === "select" ||
+        target?.isContentEditable === true
+      ) {
+        return;
+      }
+      const key = e.key.toLowerCase();
+      if (key !== "h" && key !== "n") {
+        return;
+      }
+      const selection = window.getSelection();
+      if (
+        !selection ||
+        selection.isCollapsed ||
+        selection.rangeCount === 0 ||
+        !contentRef.current
+      ) {
+        return;
+      }
+      let range: Range;
+      try {
+        range = selection.getRangeAt(0);
+      } catch {
+        return;
+      }
+      if (!contentRef.current.contains(range.commonAncestorContainer)) {
+        return;
+      }
+      const rect = range.getBoundingClientRect();
+      const highlight = createHighlightFromRange(range, "yellow", key === "n");
+      if (!highlight) {
+        return;
+      }
+      e.preventDefault();
+      if (key === "h") {
+        highlight.note = null;
+        onHighlight?.(highlight);
+        if (isMobile) {
+          clearDomSelection();
+        }
+        setPendingHighlight(null);
+        setSelectedHighlight(null);
+        setAutoFocusNote(false);
+      } else {
+        setPendingHighlight(highlight);
+        setSelectedHighlight(null);
+        setAutoFocusNote(true);
+        setMenuPosition({
+          x: rect.left + rect.width / 2,
+          y: isMobile ? rect.bottom : rect.top,
+        });
+        if (isMobile) {
+          clearDomSelection();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [readOnly, menuPosition, isMobile, onHighlight]);
 
   const handleDelete = () => {
     if (selectedHighlight && onDeleteHighlight) {
@@ -383,6 +526,7 @@ const BookmarkHTMLHighlighter = forwardRef<
   const createHighlightFromRange = (
     range: Range,
     color: ZHighlightColor,
+    applyDom = true,
   ): Highlight | null => {
     if (!contentRef.current) return null;
 
@@ -400,7 +544,9 @@ const BookmarkHTMLHighlighter = forwardRef<
       text: range.toString(),
     };
 
-    applyHighlightByOffset(highlight);
+    if (applyDom) {
+      applyHighlightByOffset(highlight);
+    }
     return highlight;
   };
 
@@ -487,6 +633,7 @@ const BookmarkHTMLHighlighter = forwardRef<
         onSave={handleSave}
         onDelete={selectedHighlight ? handleDelete : undefined}
         isMobile={isMobile}
+        autoFocusNote={autoFocusNote}
       />
     </div>
   );

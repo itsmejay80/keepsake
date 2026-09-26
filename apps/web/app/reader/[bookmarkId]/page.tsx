@@ -127,6 +127,20 @@ export default function ReaderViewPage() {
                 {/* Article Content */}
                 <Suspense fallback={<FullPageSpinner />}>
                   <div className="overflow-x-hidden">
+                    <p className="mb-2 text-xs text-muted-foreground print:hidden">
+                      Select text, then press{" "}
+                      <kbd className="rounded border bg-muted px-1">h</kbd> to
+                      highlight or{" "}
+                      <kbd className="rounded border bg-muted px-1">n</kbd> to
+                      add a note. Inside the popup:{" "}
+                      <kbd className="rounded border bg-muted px-1">h</kbd>{" "}
+                      saves,{" "}
+                      <kbd className="rounded border bg-muted px-1">n</kbd>{" "}
+                      focuses note,{" "}
+                      <kbd className="rounded border bg-muted px-1">1</kbd>–
+                      <kbd className="rounded border bg-muted px-1">4</kbd>{" "}
+                      picks color.
+                    </p>
                     <ReaderView
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
