@@ -3,7 +3,7 @@ export const X_WIDGETS_SCRIPT_SRC = "https://platform.x.com/widgets.js";
 export const X_EMBED_MIN_WIDTH = 220;
 export const X_EMBED_MAX_WIDTH = 550;
 
-type XWidgets = {
+interface XWidgets {
   ready?: (callback: () => void) => void;
   widgets: {
     load: (element?: HTMLElement) => void;
@@ -13,7 +13,7 @@ type XWidgets = {
       options?: Record<string, unknown>,
     ) => Promise<HTMLElement | undefined>;
   };
-};
+}
 
 function getXWidgets(): XWidgets | undefined {
   return (window as Window & { twttr?: XWidgets }).twttr;

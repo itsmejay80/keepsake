@@ -693,8 +693,7 @@ export const bookmarksAppRouter = router({
         }
 
         if (Object.keys(commonUpdateData).length > 1 || somethingChanged) {
-          tx
-            .update(bookmarks)
+          tx.update(bookmarks)
             .set(commonUpdateData)
             .where(
               and(
@@ -788,8 +787,7 @@ export const bookmarksAppRouter = router({
             message: "Bookmark not found",
           });
         }
-        tx
-          .update(bookmarks)
+        tx.update(bookmarks)
           .set({ modifiedAt: new Date() })
           .where(
             and(
@@ -1450,8 +1448,7 @@ export const bookmarksAppRouter = router({
 
         // Update bookmark modified timestamp
         if (numChanges > 0) {
-          tx
-            .update(bookmarks)
+          tx.update(bookmarks)
             .set({ modifiedAt: new Date() })
             .where(
               and(

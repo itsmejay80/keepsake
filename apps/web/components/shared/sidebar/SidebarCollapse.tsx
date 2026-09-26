@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
@@ -61,9 +61,9 @@ export function SidebarCollapseProvider({
 
   const toggle = useCallback(() => {
     const next = !collapsed;
-    setCollapsed(next);
-    startTransition(() => {
-      void updateSidebarCollapsed(next);
+    startTransition(async () => {
+      setCollapsed(next);
+      await updateSidebarCollapsed(next);
     });
   }, [collapsed, setCollapsed]);
 

@@ -31,15 +31,15 @@ export interface FxTweet {
   article?: {
     title?: string;
     content?: {
-      blocks?: Array<{
+      blocks?: {
         type?: string;
         text?: string;
-        inlineStyleRanges?: Array<{
+        inlineStyleRanges?: {
           offset?: number;
           length?: number;
           style?: string;
-        }>;
-      }>;
+        }[];
+      }[];
     };
   } | null;
 }

@@ -39,4 +39,4 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 pnpm db:migrate
-exec turbo --no-daemon dev --parallel --filter=@karakeep/web --filter=@karakeep/workers
+exec turbo dev --parallel --filter=@karakeep/web --filter=@karakeep/workers

@@ -33,11 +33,11 @@ export interface XArticleContent {
 export interface XArticleBlock {
   type: string;
   text: string;
-  inlineStyleRanges: Array<{
+  inlineStyleRanges: {
     offset: number;
     length: number;
     style: string;
-  }>;
+  }[];
 }
 
 interface XTweetRecord {
