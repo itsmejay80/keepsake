@@ -107,7 +107,7 @@
       }
     },
     "import": {
-      "import_bookmarks_from_karakeep_export": "Uvozi zaznamke iz Karakeep izvoza",
+      "import_bookmarks_from_karakeep_export": "Uvozi zaznamke iz Keepsake izvoza",
       "import_bookmarks_from_linkwarden_export": "Uvozi zaznamke iz Linkwarden izvoza",
       "imported_bookmarks": "Uvoženi zaznamki",
       "import_bookmarks_from_pocket_export": "Uvozi zaznamke iz Pocket izvoza",
@@ -739,7 +739,7 @@
     "is_from_source": "Vir je",
     "is_not_from_source": "Vir ni",
     "mode_label": "Način iskanja",
-    "mode_label_description": "Izberite, kako Karakeep išče ujemajoče se zaznamke.",
+    "mode_label_description": "Izberite, kako Keepsake išče ujemajoče se zaznamke.",
     "mode_keyword": "Ključna beseda",
     "mode_keyword_description": "Iskanje natančnih besed v naslovih, vsebini, URL-jih in opombah. Skoraj trenutno.",
     "mode_hybrid": "Hibridno",
@@ -1149,7 +1149,7 @@
   },
   "wrapped": {
     "title": "Tvoj zavitek {{year}}",
-    "subtitle": "Leto v Karakeepu",
+    "subtitle": "Leto v Keepsakeu",
     "banner": {
       "title": "Tvoj zavitek 2025 je pripravljen!",
       "description": "Oglej si svoje leto v zaznamkih",
@@ -1190,7 +1190,7 @@
         "assets": "Sredstva"
       }
     },
-    "footer": "Izdelano s programom Karakeep",
+    "footer": "Izdelano s programom Keepsake",
     "share": "Deli",
     "download": "Prenesi",
     "close": "Zapri",

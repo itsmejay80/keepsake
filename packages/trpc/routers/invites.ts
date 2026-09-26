@@ -64,7 +64,7 @@ export const invitesAppRouter = router({
         await sendInviteEmail(
           input.email,
           token,
-          ctx.user.name || "A Karakeep admin",
+          ctx.user.name || "A Keepsake admin",
         );
       } catch (error) {
         console.error("Failed to send invite email:", error);
@@ -264,7 +264,7 @@ export const invitesAppRouter = router({
         await sendInviteEmail(
           invite.email,
           newToken,
-          ctx.user.name || "A Karakeep admin",
+          ctx.user.name || "A Keepsake admin",
         );
       } catch (error) {
         console.error("Failed to send invite email:", error);

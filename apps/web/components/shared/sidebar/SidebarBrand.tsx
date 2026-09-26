@@ -20,7 +20,7 @@ export default function SidebarBrand() {
     >
       <Link
         href="/dashboard/bookmarks"
-        aria-label="Karakeep home"
+        aria-label="Keepsake home"
         className="relative flex min-w-0 items-center overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span

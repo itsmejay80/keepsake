@@ -196,10 +196,12 @@ export default function Sharing() {
             className="items-center gap-2"
           >
             <Text variant="title1" className="font-semibold text-foreground">
-              {mode.type === "alreadyExists" ? "Hoarded again!" : "Hoarded!"}
+              {mode.type === "alreadyExists"
+                ? "Already in your library"
+                : "Saved for later"}
             </Text>
             <Text variant="body" className="text-muted-foreground">
-              Saved to your collection
+              Ready whenever you need it
             </Text>
           </Animated.View>
 

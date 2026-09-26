@@ -22,7 +22,7 @@ export function toRSS(
     feed_url: params.feedUrl,
     site_url: params.siteUrl,
     description: params.description,
-    generator: "Karakeep",
+    generator: "Keepsake",
   });
 
   bookmarks

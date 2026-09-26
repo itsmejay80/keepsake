@@ -54,7 +54,7 @@ function isAuthCommand(command: { name(): string; parent?: unknown }) {
 
 const program = new Command()
   .name("karakeep")
-  .description("A CLI interface to interact with the karakeep api")
+  .description("A CLI interface to interact with the Keepsake API")
   .addOption(
     new Option("--api-key <key>", "the API key to interact with the API").env(
       "KARAKEEP_API_KEY",

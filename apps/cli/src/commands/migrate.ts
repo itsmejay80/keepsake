@@ -112,7 +112,7 @@ export const migrateCmd = new Command()
 
     try {
       line("");
-      line(`${chalk.bold("Karakeep Migration")}`);
+      line(`${chalk.bold("Keepsake Migration")}`);
       line(`${chalk.gray("From:")} ${globals.serverAddr}`);
       line(`${chalk.gray("To:  ")} ${opts.destServer}`);
       line("");

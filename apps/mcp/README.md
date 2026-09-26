@@ -1,7 +1,7 @@
-# Karakeep MCP Server
+# Keepsake MCP Server
 
-This is the Karakeep MCP server, which is a server that can be used to interact
-with Karakeep from other tools.
+This MCP server lets other tools interact with Keepsake. The package and
+environment variable names below retain their Karakeep names for compatibility.
 
 ## Supported Tools
 

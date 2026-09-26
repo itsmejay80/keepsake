@@ -23,7 +23,7 @@ enum LoginType {
 
 const DEFAULT_SERVER_ADDRESS = "https://cloud.karakeep.app";
 const CONNECTION_ERROR_MESSAGE =
-  "Couldn’t connect to this Karakeep server. Check the server address and your internet connection, then try again.";
+  "Couldn’t connect to this Keepsake server. Check the server address and your internet connection, then try again.";
 
 function getLoginErrorMessage(
   error: { data?: { code?: string } | null; message: string },
@@ -308,7 +308,7 @@ export default function Signin() {
             className="active:opacity-60"
           >
             <Text className="text-sm text-muted-foreground">
-              New to Karakeep?{" "}
+              New to Keepsake?{" "}
               <Text className="text-sm font-medium text-primary">
                 Create account
               </Text>

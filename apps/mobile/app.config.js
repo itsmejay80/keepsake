@@ -4,11 +4,11 @@ export default {
   expo: {
     ...(IS_DEV
       ? {
-          name: "Karakeep (Dev)",
+          name: "Keepsake (Dev)",
           scheme: "karakeep-dev",
         }
       : {
-          name: "Karakeep",
+          name: "Keepsake",
           scheme: "karakeep",
         }),
     slug: "hoarder",
@@ -95,7 +95,7 @@ export default {
         "expo-image-picker",
         {
           photosPermission:
-            "The app access your photo gallary on your request to hoard them.",
+            "Keepsake can access your photos when you choose an image to save.",
         },
       ],
       [

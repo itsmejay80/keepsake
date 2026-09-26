@@ -45,8 +45,8 @@ export function ShareButton({
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: "My 2025 Karakeep Wrapped",
-            text: "Check out my 2025 Karakeep Wrapped!",
+            title: "My year in Keepsake",
+            text: "A look back at what I saved in Keepsake this year.",
           });
           return;
         }

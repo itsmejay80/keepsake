@@ -69,8 +69,8 @@ export const sendVerificationEmail = withTracing(
       subject: "Verify your email address",
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Welcome to Karakeep, ${escapeHtml(name)}!</h2>
-        <p>Please verify your email address by clicking the link below:</p>
+        <h2>Your Keepsake library is almost ready, ${escapeHtml(name)}.</h2>
+        <p>Confirm your email address to start saving the things you want to revisit:</p>
         <p>
           <a href="${verificationUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Verify Email Address
@@ -83,9 +83,9 @@ export const sendVerificationEmail = withTracing(
       </div>
     `,
       text: `
-Welcome to Karakeep, ${name}!
+Your Keepsake library is almost ready, ${name}.
 
-Please verify your email address by visiting this link:
+Confirm your email address to start saving things you want to revisit:
 ${verificationUrl}
 
 This link will expire in 24 hours.
@@ -111,12 +111,12 @@ export const sendInviteEmail = withTracing(
     const mailOptions = {
       from: serverConfig.email.smtp!.from,
       to: email,
-      subject: "You've been invited to join Karakeep",
+      subject: "An invitation to share in Keepsake",
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>You've been invited to join Karakeep!</h2>
-        <p>${escapeHtml(inviterName)} has invited you to join Karakeep, the bookmark everything app.</p>
-        <p>Click the link below to accept your invitation and create your account:</p>
+        <h2>Make space for what you want to keep.</h2>
+        <p>${escapeHtml(inviterName)} invited you to Keepsake, a place to save and revisit links, notes, and ideas together.</p>
+        <p>Accept the invitation to create your account:</p>
         <p>
           <a href="${inviteUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Accept Invitation
@@ -129,9 +129,9 @@ export const sendInviteEmail = withTracing(
       </div>
     `,
       text: `
-You've been invited to join Karakeep!
+You have an invitation to Keepsake.
 
-${inviterName} has invited you to join Karakeep, a powerful bookmarking and content organization platform.
+${inviterName} invited you to a place to save and revisit links, notes, and ideas together.
 
 Accept your invitation by visiting this link:
 ${inviteUrl}
@@ -162,9 +162,9 @@ export const sendPasswordResetEmail = withTracing(
       subject: "Reset your password",
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Password Reset Request</h2>
+        <h2>Reset your Keepsake password</h2>
         <p>Hi ${escapeHtml(name)},</p>
-        <p>You requested to reset your password for your Karakeep account. Click the link below to reset your password:</p>
+        <p>Use the link below to get back to your saved library:</p>
         <p>
           <a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Reset Password
@@ -179,7 +179,7 @@ export const sendPasswordResetEmail = withTracing(
       text: `
 Hi ${name},
 
-You requested to reset your password for your Karakeep account. Visit this link to reset your password:
+Use this link to reset your Keepsake password and get back to your saved library:
 ${resetUrl}
 
 This link will expire in 1 hour.
@@ -209,8 +209,8 @@ export const sendListInvitationEmail = withTracing(
       subject: `${inviterName} invited you to collaborate on "${listName}"`,
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>You've been invited to collaborate on a list!</h2>
-        <p>${escapeHtml(inviterName)} has invited you to collaborate on the list <strong>"${escapeHtml(listName)}"</strong> in Karakeep.</p>
+        <h2>A list is better when you can share it.</h2>
+        <p>${escapeHtml(inviterName)} invited you to work together on <strong>"${escapeHtml(listName)}"</strong> in Keepsake.</p>
         <p>Click the link below to view and accept or decline the invitation:</p>
         <p>
           <a href="${inviteUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
@@ -219,19 +219,19 @@ export const sendListInvitationEmail = withTracing(
         </p>
         <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
         <p><a href="${inviteUrl}">${inviteUrl}</a></p>
-        <p>You can accept or decline this invitation from your Karakeep dashboard.</p>
+        <p>You can accept or decline this invitation from your library.</p>
         <p>If you weren't expecting this invitation, you can safely ignore this email or decline it in your dashboard.</p>
       </div>
     `,
       text: `
-You've been invited to collaborate on a list!
+You have an invitation to a shared list.
 
-${inviterName} has invited you to collaborate on the list "${listName}" in Karakeep.
+${inviterName} invited you to work together on "${listName}" in Keepsake.
 
 View your invitation by visiting this link:
 ${inviteUrl}
 
-You can accept or decline this invitation from your Karakeep dashboard.
+You can accept or decline this invitation from your library.
 
 If you weren't expecting this invitation, you can safely ignore this email or decline it in your dashboard.
     `,

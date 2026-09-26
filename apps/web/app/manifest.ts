@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Karakeep",
-    short_name: "Karakeep",
+    name: "Keepsake",
+    short_name: "Keepsake",
     description:
-      "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
+      "A personal library for things worth revisiting. Save links, notes, images, and PDFs, then find them when you need them.",
     background_color: "#ffffff",
     theme_color: "#ffffff",
     start_url: "/",
@@ -47,14 +47,14 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "3840x2307",
         type: "image/png",
         form_factor: "wide",
-        label: "Karakeep desktop bookmark library",
+        label: "Your saved library on desktop",
       },
       {
         src: "/screenshots/mobile.png",
         sizes: "692x1498",
         type: "image/png",
         form_factor: "narrow",
-        label: "Karakeep mobile bookmark library",
+        label: "Your saved library on mobile",
       },
     ],
   };

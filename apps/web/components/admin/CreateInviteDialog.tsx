@@ -79,9 +79,8 @@ export default function CreateInviteDialog({
         <DialogHeader>
           <DialogTitle>Send User Invitation</DialogTitle>
           <DialogDescription>
-            Send an invitation to a new user to join Karakeep. They&apos;ll
-            receive an email with instructions to create their account and will
-            be assigned the &quot;user&quot; role.
+            Invite someone to build a library with you. They&apos;ll get an
+            email to create an account with the &quot;user&quot; role.
           </DialogDescription>
         </DialogHeader>
 

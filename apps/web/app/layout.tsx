@@ -21,10 +21,10 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Karakeep",
-  applicationName: "Karakeep",
+  title: "Keepsake",
+  applicationName: "Keepsake",
   description:
-    "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
+    "A personal library for things worth revisiting. Save links, notes, images, and PDFs, then find them when you need them.",
   icons: {
     icon: [
       {
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Karakeep",
+    title: "Keepsake",
   },
   formatDetection: {
     telephone: false,

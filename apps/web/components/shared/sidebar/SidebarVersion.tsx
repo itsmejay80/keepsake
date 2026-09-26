@@ -66,7 +66,7 @@ export default function SidebarVersion({
   const stableRelease = isStableRelease(effectiveChangelogVersion);
   const displayVersion = serverVersion ?? "unknown";
   const changelogDisplayVersion = effectiveChangelogVersion ?? displayVersion;
-  const versionLabel = `Karakeep v${displayVersion}`;
+  const versionLabel = `Keepsake v${displayVersion}`;
   const releasePageUrl = useMemo(() => {
     if (
       !effectiveChangelogVersion ||

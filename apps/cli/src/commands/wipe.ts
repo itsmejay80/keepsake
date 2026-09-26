@@ -94,7 +94,7 @@ export const wipeCmd = new Command()
 
     try {
       line("");
-      line(`${chalk.bold("Karakeep Wipe")}`);
+      line(`${chalk.bold("Keepsake Wipe")}`);
       line(`${chalk.gray("Server:")} ${globals.serverAddr}`);
       line("");
 

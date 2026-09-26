@@ -346,7 +346,7 @@
       "import_bookmarks_from_matter_export": "Import Bookmarks from Matter export",
       "import_bookmarks_from_omnivore_export": "Import Bookmarks from Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
-      "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
+      "import_bookmarks_from_karakeep_export": "Import a Keepsake or Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks",
@@ -1057,7 +1057,7 @@
     "is_from_source": "Source is",
     "is_not_from_source": "Source is not",
     "mode_label": "Search mode",
-    "mode_label_description": "Choose how Karakeep finds matching bookmarks.",
+    "mode_label_description": "Choose how to look through your saved library.",
     "mode_keyword": "Keyword",
     "mode_keyword_description": "Match exact words in titles, content, URLs, and notes. Almost instant.",
     "mode_hybrid": "Hybrid",
@@ -1156,7 +1156,7 @@
   },
   "wrapped": {
     "title": "Your {{year}} Wrapped",
-    "subtitle": "A Year in Karakeep",
+    "subtitle": "A year of things worth keeping",
     "banner": {
       "title": "Your 2025 Wrapped is ready!",
       "description": "See your year in bookmarks",
@@ -1197,7 +1197,7 @@
         "highlights": "Highlights"
       }
     },
-    "footer": "Made with Karakeep",
+    "footer": "From my Keepsake library",
     "share": "Share",
     "download": "Download",
     "close": "Close",

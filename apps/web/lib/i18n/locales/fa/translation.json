@@ -296,7 +296,7 @@
       "import_bookmarks_from_linkwarden_export": "درون‌ریزی نشانک‌ها از خروجی Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "درون‌ریزی نشانک‌ها از Tab Session Manager",
       "export_links_and_notes": "برون‌بری لینک‌ها و یادداشت‌ها",
-      "import_bookmarks_from_karakeep_export": "درون‌ریزی نشانک‌ها از خروجی Karakeep",
+      "import_bookmarks_from_karakeep_export": "درون‌ریزی نشانک‌ها از خروجی Keepsake",
       "imported_bookmarks": "نشانک‌های درون‌ریزی‌شده",
       "import_bookmarks_from_mymind_export": "درون‌ریزی نشانک‌ها از خروجی mymind",
       "import_bookmarks_from_instapaper_export": "درون‌ریزی نشانک‌ها از خروجی Instapaper",
@@ -960,7 +960,7 @@
     "is_from_source": "از منبع است",
     "is_not_from_source": "از منبع نیست",
     "mode_label": "حالت جستجو",
-    "mode_label_description": "نحوه یافتن نشانک‌های منطبق توسط Karakeep را انتخاب کنید.",
+    "mode_label_description": "نحوه یافتن نشانک‌های منطبق توسط Keepsake را انتخاب کنید.",
     "mode_keyword": "کلمه کلیدی",
     "mode_keyword_description": "انطباق دقیق کلمات در عناوین، محتوا، نشانی‌ها و یادداشت‌ها. تقریباً فوری.",
     "mode_hybrid": "ترکیبی (Hybrid)",
@@ -1166,7 +1166,7 @@
         "assets": "دارایی‌ها"
       }
     },
-    "footer": "ساخته شده با Karakeep",
+    "footer": "ساخته شده با Keepsake",
     "share": "اشتراک‌گذاری",
     "download": "بارگیری",
     "close": "بستن",

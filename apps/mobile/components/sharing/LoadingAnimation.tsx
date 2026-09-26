@@ -101,7 +101,7 @@ export default function LoadingAnimation() {
       </Animated.View>
       <View className="flex-row items-baseline">
         <Text variant="title1" className="font-semibold text-foreground">
-          Hoarding
+          Saving
         </Text>
         <View className="w-8 flex-row">
           <Animated.Text style={dot1Style} className="text-xl text-foreground">

@@ -211,7 +211,7 @@
       }
     },
     "import": {
-      "import_bookmarks_from_karakeep_export": "Импортировать закладки из экспорта Karakeep",
+      "import_bookmarks_from_karakeep_export": "Импортировать закладки из экспорта Keepsake",
       "import_export": "Импорт / Экспорт",
       "import_export_bookmarks": "Импорт / Экспорт закладок",
       "import_bookmarks_from_pocket_export": "Импортировать закладки из экспорта Pocket",
@@ -1088,7 +1088,7 @@
     "is_from_source": "Источник:",
     "is_not_from_source": "Источника нет",
     "mode_label": "Режим поиска",
-    "mode_label_description": "Выберите, как Karakeep находит подходящие закладки.",
+    "mode_label_description": "Выберите, как Keepsake находит подходящие закладки.",
     "mode_keyword": "Ключевые слова",
     "mode_keyword_description": "Поиск точных совпадений слов в заголовках, контенте, URL-адресах и заметках. Почти мгновенно.",
     "mode_hybrid": "Гибридный",
@@ -1149,7 +1149,7 @@
   },
   "wrapped": {
     "title": "Ваш {{year}} Wrapped",
-    "subtitle": "Год в Karakeep",
+    "subtitle": "Год в Keepsake",
     "banner": {
       "title": "Ваш 2025 Wrapped готов!",
       "description": "Посмотрите свой год в закладках",
@@ -1190,7 +1190,7 @@
         "assets": "Ресурсы"
       }
     },
-    "footer": "Сделано с помощью Karakeep",
+    "footer": "Сделано с помощью Keepsake",
     "share": "Поделиться",
     "download": "Скачать",
     "close": "Закрыть",

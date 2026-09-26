@@ -170,7 +170,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
           Accept Your Invitation
         </CardTitle>
         <CardDescription>
-          Complete your account setup to join Karakeep
+          Set up your account to start saving and sharing.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

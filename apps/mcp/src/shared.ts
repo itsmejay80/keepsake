@@ -29,7 +29,7 @@ export const karakeepClient = createKarakeepClient({
 });
 
 export const mcpServer = new McpServer({
-  name: "Karakeep",
+  name: "Keepsake",
   version: packageJson.version,
 });
 

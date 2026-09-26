@@ -291,7 +291,7 @@ export function ImportExportRow() {
           </FilePickerButton>
         </ImportCard>
         <ImportCard
-          text="Karakeep"
+          text="Keepsake"
           description={t(
             "settings.import.import_bookmarks_from_karakeep_export",
           )}

@@ -52,7 +52,7 @@ export default function BookmarkSavedPage() {
     <div className="flex flex-col gap-2">
       {error && <p className="text-red-500">{error}</p>}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xl">Hoarded!</p>
+        <p className="text-xl">Saved for later</p>
         <div className="flex gap-2">
           <Link
             className={cn(

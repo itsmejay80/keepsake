@@ -308,7 +308,7 @@
       "import_bookmarks_from_matter_export": "Import semne de carte din export Matter",
       "import_bookmarks_from_omnivore_export": "Import semne de carte din export Omnivore",
       "import_bookmarks_from_linkwarden_export": "Import semne de carte din export Linkwarden",
-      "import_bookmarks_from_karakeep_export": "Import semne de carte din export Karakeep",
+      "import_bookmarks_from_karakeep_export": "Import semne de carte din export Keepsake",
       "import_bookmarks_from_tab_session_manager_export": "Import semne de carte din Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Import semne de carte din export mymind",
       "import_bookmarks_from_instapaper_export": "Import semne de carte din export Instapaper",
@@ -965,7 +965,7 @@
     "feeds": "Fluxuri",
     "no_suggestions": "Nicio sugestie",
     "mode_label": "Mod căutare",
-    "mode_label_description": "Alege modul în care Karakeep găsește semne de carte potrivite.",
+    "mode_label_description": "Alege modul în care Keepsake găsește semne de carte potrivite.",
     "mode_keyword": "Cuvânt cheie",
     "mode_keyword_description": "Potrivește cuvinte exacte în titluri, conținut, URL-uri și note. Aproape instantaneu.",
     "mode_hybrid": "Hibrid",
@@ -1117,7 +1117,7 @@
   },
   "wrapped": {
     "title": "{{year}} Wrapped",
-    "subtitle": "Un an în Karakeep",
+    "subtitle": "Un an în Keepsake",
     "banner": {
       "title": "Wrapped 2025 este gata!",
       "description": "Vezi anul tău în semne de carte",
@@ -1158,7 +1158,7 @@
         "assets": "Resurse"
       }
     },
-    "footer": "Creat cu Karakeep",
+    "footer": "Creat cu Keepsake",
     "share": "Distribuie",
     "download": "Descarcă",
     "close": "Închide",

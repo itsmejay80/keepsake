@@ -128,7 +128,7 @@
       "import_export_bookmarks": "Importar/Exportar Marcadores",
       "import_bookmarks_from_html_file": "Importar favoritos de arquivo HTML",
       "import_bookmarks_from_linkwarden_export": "Importar marcadores da exportação do Linkwarden",
-      "import_bookmarks_from_karakeep_export": "Importar marcadores da exportação do Karakeep",
+      "import_bookmarks_from_karakeep_export": "Importar marcadores da exportação do Keepsake",
       "export_links_and_notes": "Exportar Links e Notas",
       "imported_bookmarks": "Favoritos importados",
       "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do Tab Session Manager",
@@ -975,7 +975,7 @@
     "is_from_source": "Fonte é",
     "is_not_from_source": "Fonte não é",
     "mode_label": "Modo de pesquisa",
-    "mode_label_description": "Escolha como o Karakeep encontra marcadores correspondentes.",
+    "mode_label_description": "Escolha como o Keepsake encontra marcadores correspondentes.",
     "mode_keyword": "Palavra-chave",
     "mode_keyword_description": "Corresponder a palavras exatas em títulos, conteúdo, URLs e notas. Quase instantâneo.",
     "mode_hybrid": "Híbrido",
@@ -1149,7 +1149,7 @@
   },
   "wrapped": {
     "title": "Seu Resumo de {{year}}",
-    "subtitle": "Um Ano em Karakeep",
+    "subtitle": "Um Ano em Keepsake",
     "banner": {
       "title": "Seu Resumo de 2025 está pronto!",
       "description": "Veja seu ano em favoritos",
@@ -1190,7 +1190,7 @@
         "assets": "Ativos"
       }
     },
-    "footer": "Feito com Karakeep",
+    "footer": "Feito com Keepsake",
     "share": "Compartilhar",
     "download": "Baixar",
     "close": "Fechar",
