@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://itsmejay80.github.io/keepsake/sitemap.xml
